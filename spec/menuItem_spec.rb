@@ -7,11 +7,11 @@ describe MenuItem do
 	# end
 
 	before :each do
-		@food=Food.new "FoodName", :foodCategory
-		@coke=Food.new "Coke", :drink
-		@pepsi=Food.new "Pepsi", :drink
-		@bbqChicken=Food.new "BBQ Chicken", :chicken
-		@lemonChicken=Food.new "Lemon Chicken", :chicken
+		@food=Food.new "FoodName", [:foodCategory]
+		@coke=Food.new "Coke", [:drink]
+		@pepsi=Food.new "Pepsi", [:drink]
+		@bbqChicken=Food.new "BBQ Chicken", [:chicken]
+		@lemonChicken=Food.new "Lemon Chicken", [:chicken, :meat]
 		@menuItem1=MenuItem.new @food, 10, 5
 		@menuItem2=MenuItem.new @coke, 2, 6
 		@menuItem3=MenuItem.new @pepsi, 2, 6
@@ -24,20 +24,12 @@ describe MenuItem do
 		it "returns a new MenuItem Object" do
 			@menuItem1.should be_an_instance_of MenuItem
 		end
-
-		it "checks to see if the id is correct" do
-			@menuItem1.id.should eql :foodnamefoodcategory
-			@menuItem4.id.should eql :bbq_chickenchicken
-		end
-
-
-		
 	end
 
 	describe "#calculate_total_cost_of_item" do
 
 		it "returns the total cost of the menu Item" do
-			@menuItem1.calculate_total_cost_of_item.should eql 50
+			expect(@menuItem1.calculate_total_cost_of_item).to eq 50
 		end
 	end
 
@@ -48,6 +40,18 @@ describe MenuItem do
 		end
 
 	end
+
+	
+
+	describe "#categories" do
+
+		it "returns the name of the category the food item is in" do
+			expect(@menuItem1.categories).to eq [:foodCategory]
+		end
+
+	end
+
+
 
 	describe "#to_s" do
 
@@ -60,9 +64,27 @@ describe MenuItem do
 	describe "#==" do
 		it "checks to see if two menu items are the same" do
 			@menuItem1.should eql MenuItem.new @food, 10, 5
-			
+
 		end
 	end
+
+	describe "#hashIdGenerator" do
+		it "creates a hashId for the menu" do
+			@menuItem1.hashIdGenerator.should eql :foodnamefoodcategory
+			@menuItem5.hashIdGenerator.should eql :lemon_chickenchickenmeat
+			puts @menuItem5.hashIdGenerator
+		end
+	end
+
+	describe "#isMatch?" do
+
+		it "returns true if string matches part of the name for the menuItem" do
+			@menuItem4.isMatch?("bbq").should eql true
+			@menuItem2.isMatch?("bbq").should_not eql true
+		end			
+
+	end
+
 
 
 

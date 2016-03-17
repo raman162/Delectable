@@ -3,13 +3,15 @@ require 'spec_helper'
 describe Food do
 
 	before :each do
-		@food = Food.new "FoodName", :category
+		@food = Food.new "FoodName", [:category]
+		@food2= Food.new "FoodName2", [:category1, :category2]
 	end
 
 	describe "#new" do
 		
 		it "returns a new Food Object" do
 			@food.should be_an_instance_of Food
+			@food2.should be_an_instance_of Food
 		end
 
 		it "takes two paramaters and returns a food object" do
@@ -26,9 +28,11 @@ describe Food do
 		end
 	end
 
-	describe "#category" do
-		it "returns the Food's category" do
-			@food.category.should eql :category
+	describe "#categories" do
+		it "returns the Food's categories" do
+			@food.categories.should eql [:category]
+			@food2.categories.should eql [:category1, :category2]
+
 		end
 	end
 
@@ -42,7 +46,11 @@ describe Food do
 	describe "#==" do
 
 		it "checks to see if two food objects are equal" do
-			@food.should eql (Food.new "FoodName", :category)
+			@food.should eql (Food.new "FoodName", [:category])
+			@food.should == (Food.new "FoodName", [:category])
+			@food2.should eql (Food.new "FoodName2", [:category1, :category2])
+			expect(@food).not_to eq (Food.new "DiffFood", :diffcategory)
+			expect(@food==(Food.new "DiffFood", :diffcategory)).to eq false
 		end
 	end
 
