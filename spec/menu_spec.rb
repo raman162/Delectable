@@ -128,7 +128,7 @@ describe Menu do
 		end
 			
 		it "returns an empty menu when no menu items match the query" do
-			expect(@copyMenu.search("drink")).to eq Menu.new
+			expect(@copyMenu.find("drink")).to eq Menu.new
 
 		end
 

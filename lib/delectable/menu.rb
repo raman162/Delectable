@@ -41,7 +41,18 @@ class Menu
 		end
 	end
 
+	def search(query)
+		newMenu=Menu.new
+		@menuItems.each do |id,menuItem|
+			if menuItem.isMatch? query
+				newMenu.menuItems[id]=menuItem
+			end
+		end
+		newMenu
+	end
 
+	alias find search
+	
 	def to_s
 		menuString=""
 		@menuItems.each do |id,menuItem|
@@ -58,16 +69,6 @@ class Menu
 			return false
 		end
 		match
-	end
-
-	def search(query)
-		newMenu=Menu.new
-		@menuItems.each do |id,menuItem|
-			if menuItem.isMatch? query
-				newMenu.menuItems[id]=menuItem
-			end
-		end
-		newMenu
 	end
 
 	def Menu.menuItemsEqual?(menu1Hash, menu2Hash)
