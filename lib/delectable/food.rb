@@ -6,8 +6,14 @@ class Food
 		@categories=categories
 	end
 
-	def to_s
-		@name
+	def addToCategories!(category)
+		unless hasCategory?(category) 
+			@categories<<category
+		end
+	end
+
+	def hasCategory?(category)
+		@categories.include? category
 	end
 
 	def == food

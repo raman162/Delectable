@@ -11,13 +11,13 @@ class MenuItem
 	def hashIdGenerator
 		catString=""
 		@food.categories.each do |category| 
-			catString=catString+category.to_s
+			catString+=category.to_s
 		end
 		return (@food.name+catString).gsub(/\s+/,"_").downcase.to_sym
 	end
 
 	def calculate_total_cost_of_item
-		cost=@price_per_person * @min_number_of_persons
+		cost=price_per_person*min_number_of_persons
 		cost
 	end
 

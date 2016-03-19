@@ -36,10 +36,27 @@ describe Food do
 		end
 	end
 
-	describe "#to_s" do
+	# describe "#to_s" do
 		
-		it "returns a string of the Food's name" do
-			@food.to_s.should eql "FoodName"
+	# 	it "returns a string of the Food's name" do
+	# 		@food.to_s.should eql "FoodName"
+	# 	end
+	# end
+
+	describe "#addToCategories!" do
+		it "adds a category to the food's categories" do
+			@food.addToCategories!(:category3)
+			@food.categories[1].should eql :category3
+		end
+	end
+
+	describe "hasCategory?" do
+		it "returns true if category exists" do
+			@food.hasCategory?(:category).should eql true
+		end
+
+		it "returns false if category does note exist" do
+			@food.hasCategory?(:category3).should eql false
 		end
 	end
 
