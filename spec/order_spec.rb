@@ -23,14 +23,19 @@ describe Order do
 		weekendDate=Time.new(2016,03,19, 3,30)
 		oldDate=Time.now - 30*8*86400
 		futureDate=Time.now + 5*86400
-		@order=Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
-		@copyOrder=Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
-		@todayOrder=Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", todayDate, "specialInstructions"
-		@orderWithId =Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", deliveryDate, "specialInstructions", 12345
-		@pastOrder =Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", pastDate, "specialInstructions", 12345
-		@weekendOrder = Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", weekendDate, "specialInstructions"
-		@oldOrder=Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", oldDate, "specialInstructions"
-		@futureOrder=Order.new  "CustomerFirstName", "CustomerLastName", "Customer@email.com", "customerPhoneNumber", menuOrders, "deliveryAddress", futureDate, "specialInstructions"
+		eightDayDate=Time.now + 8*86400
+		tomorrowDate=Time.now + 83000
+		customer=Customer.new "CustomerFirstName", "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
+		@order=Order.new  customer , menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
+		@copyOrder=Order.new  customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
+		@todayOrder=Order.new  customer, menuOrders, "deliveryAddress", todayDate, "specialInstructions"
+		@orderWithId =Order.new  customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions", 12345
+		@pastOrder =Order.new  customer, menuOrders, "deliveryAddress", pastDate, "specialInstructions", 12345
+		@weekendOrder = Order.new  customer, menuOrders, "deliveryAddress", weekendDate, "specialInstructions"
+		@oldOrder=Order.new  customer, menuOrders, "deliveryAddress", oldDate, "specialInstructions"
+		@futureOrder=Order.new  customer, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
+		@dueInEightdayOrder=Order.new  customer, menuOrders, "deliveryAddress", eightDayDate, "specialInstructions"
+		@tomorrowOrder=Order.new  customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
 	end
 
 
@@ -144,6 +149,25 @@ describe Order do
 		end
 	end
 
+	describe "#dueTomorrow?" do
+
+		it "returns true if the order is due Tomorrow" do
+			@tomorrowOrder.dueTomorrow?.should eql true
+		end
+	end
+
+	describe "dueWithinDays?" do
+
+		it "returns true if the order is due within 7 days" do
+			@futureOrder.dueWithinDays?(7).should eql true
+		end
+
+		it "returns false if the order is ahead of 8 days" do
+			@dueInEightdayOrder.dueWithinDays?(7).should eql false
+		end
+
+	end
+
 	describe "#completeWithinPastDays?" do
 
 		it "returns false if the order is pending in the past" do
@@ -184,6 +208,7 @@ describe Order do
 	describe "#calculateCost" do
 
 		it "calculates the cost for an order" do
+			Order.changeSurcharge! 0
 			@order.calculateCost.should eql 170
 		end
 
@@ -240,6 +265,7 @@ describe Order do
 
 		it "creates a nice string of the order" do
 			Order.changeSurcharge! 0
+			@order.calculateCost
 			@order.to_s.should eql "Order Id: #{@order.id}\nCustomer Last Name: CustomerLastName\nCustomer Email: Customer@email.com\nCustomer Phone: customerPhoneNumber\nDelivery Address: deliveryAddress\nDelivery Date & Time: #{@order.deliveryDate.to_s}\nSpecial Instructions:\nspecialInstructions\nItems Ordered:\nBBQ Beef Brisket $10.00 x 15\nCoke $2.00 x 10\n\nSurcharge Included: $0.00\nTotal Cost: $170.00" 
 		end
 	end
@@ -255,5 +281,58 @@ describe Order do
 		it "customer should match the query " do
 			@order.isMatch?("cust").should eql true
 		end
+	end
+
+	describe "#surchargeDates" do
+
+		it "returns the surcharge dates" do
+			Order.removeAllSurchargeDates!
+			Order.surchargeDates.should eql []
+		end
+
+	end
+
+
+	describe "#addSurchargeDate!" do
+		it "Adds a surcharge date to the array of surcharge Dates" do
+			dateNow=Time.now
+			Order.addSurchargeDate!(dateNow)
+			Order.surchargeDates.include?(dateNow).should eql true
+			Order.removeAllSurchargeDates!
+		end
+	end
+
+	describe "#removeAllSurchargeDates!" do
+
+		it "removes all surchargeDates" do
+			dateNow=Time.now
+			Order.addSurchargeDate!(dateNow)
+			Order.surchargeDates.include?(dateNow).should eql true
+			Order.removeAllSurchargeDates!
+			Order.surchargeDates.should eql []
+		end
+
+	end
+
+	describe "#removeSurchargeDate!" do
+
+		it "Removes a surcharge date given the location" do
+			Order.removeAllSurchargeDates!
+			dateNow=Time.now
+			Order.addSurchargeDate!(dateNow)
+			Order.surchargeDates.include?(dateNow).should eql true
+			Order.removeSurchargeDate!(0)
+			Order.surchargeDates.include?(dateNow).should eql false
+			Order.removeAllSurchargeDates!
+		end
+
+		it "does nothing if given invalid location" do
+			dateNow=Time.now
+			Order.addSurchargeDate!(dateNow)
+			Order.surchargeDates.include?(dateNow).should eql true
+			Order.removeSurchargeDate!(3)
+			Order.surchargeDates.include?(dateNow).should eql true
+		end
+
 	end
 end

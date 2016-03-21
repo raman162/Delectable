@@ -2,17 +2,15 @@ class Order
 	@@surcharge=0
 	@@weekendSurcharge=5
 	@@id_setter=0
+	@@surchargeDates=[]
 	ORDER_CANCELLED = 0
 	ORDER_PENDING = 1
 	ORDER_COMPLETE = 2
 	attr_accessor :itemsInOrder, :order_status, :deliveryDate, :surcharge, :id
 	attr_reader :id, :finalCost
 
-	def initialize(customerFirstName, customerLastName, customerEmail, customerNumber, itemsInOrder, deliveryAddress, deliveryDate, specialInstructions, id=0)
-		@customerFirstName = customerFirstName
-		@customerLastName = customerLastName
-		@customerEmail=customerEmail
-		@customerNumber=customerNumber
+	def initialize(customer, itemsInOrder, deliveryAddress, deliveryDate, specialInstructions, id=0)
+		@customer=customer
 		@itemsInOrder = itemsInOrder
 		@deliveryAddress = deliveryAddress
 		@deliveryDate = deliveryDate
@@ -66,15 +64,24 @@ class Order
 	end
 
 	def dueToday?
-		@deliveryDate.day == Time.now.day && @deliveryDate.month == Time.now.month && @deliveryDate.year==Time.now.year
+		@deliveryDate.day == Time.now.day && @deliveryDate.month == Time.now.month && @deliveryDate.year==Time.now.year && order_status==ORDER_PENDING
 	end
 
 	def dueInThePast?
-		@deliveryDate<Time.now
+		@deliveryDate<Time.now && order_status==ORDER_PENDING
 	end
 
 	def dueInTheFuture?
-		@deliveryDate>Time.now
+		@deliveryDate>Time.now && order_status==ORDER_PENDING
+	end
+
+	def dueWithinDays?(days)
+		dueDate=Time.now+days*86400
+		order_status == ORDER_PENDING && dueDate >= @deliveryDate && @deliveryDate >= Time.now
+	end
+
+	def dueTomorrow?
+		dueWithinDays?(1)
 	end
 
 	def completeWithinPastDays?(days)
@@ -105,14 +112,31 @@ class Order
 		@@surcharge
 	end
 
+	def Order.addSurchargeDate!(surchargeDate)
+		@@surchargeDates << surchargeDate unless @@surchargeDates.include? surchargeDate
+	end
+
+	def Order.surchargeDates
+		@@surchargeDates
+	end
+
+	def Order.removeAllSurchargeDates!
+		@@surchargeDates=[]
+	end
+
+	def Order.removeSurchargeDate!(location)
+		@@surchargeDates.delete_at(location) if (location > -1) && (location < @@surchargeDates.length)
+	end
+
+
 
 	def to_s
 		order_id="Order Id: #{@id}"
-		customer_info="\nCustomer Last Name: #{@customerLastName}\nCustomer Email: #{@customerEmail}\nCustomer Phone: #{@customerNumber}"
+		customer_info="\nCustomer Last Name: #{@customer.lastName}\nCustomer Email: #{@customer.email}\nCustomer Phone: #{@customer.phoneNumber}"
 		delivery_info="\nDelivery Address: #{@deliveryAddress}\nDelivery Date & Time: #{@deliveryDate.to_s}"
 		special_instructions="\nSpecial Instructions:\n#{@specialInstructions}"	
 		items_info="\nItems Ordered:"+self.itemsOrdered_to_s
-		charge_info="\n\nSurcharge Included: $"+sprintf("%.2f",@@surcharge) + "\nTotal Cost: $"+sprintf("%.2f", self.calculateCost)
+		charge_info="\n\nSurcharge Included: $"+sprintf("%.2f",@@surcharge) + "\nTotal Cost: $"+sprintf("%.2f", finalCost)
 		order_id+customer_info+delivery_info+special_instructions+items_info+charge_info	
 	end
 
@@ -124,6 +148,6 @@ class Order
 
 
 	def isMatch?(query)
-		@customerLastName.include?(query) || @customerNumber.include?(query) || @customerEmail.include?(query)
+		@customer.isMatch?(query)
 	end
 end
