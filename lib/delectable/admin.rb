@@ -1,6 +1,6 @@
 class Admin
 
-	attr_accessor :customers, :orders
+	attr_accessor :customers, :orders, :menu
 
 
 	def initialize orders, menu,  customers
@@ -42,6 +42,14 @@ class Admin
 		ordersDueTomorrow
 	end
 
+	def getOrdersDueThisDate(date)
+		ordersDue=[]
+		@orders.each do |order|
+			ordersDue << order.to_JSON if order.dueThisDate?(date)
+		end
+		ordersDue
+	end
+
 	def numberOfOrdersCopmleteWithinPastMonths(months)
 		monthCount=0
 		@orders.each do |order|
@@ -74,4 +82,11 @@ class Admin
 		Order.removeAllSurchargeDates!
 	end
 
+	def ordersToJSON
+		orderArray=[]
+		@orders.each do |order|
+			orderArray << order.to_JSON
+		end
+		orderArray
+	end
 end

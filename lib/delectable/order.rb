@@ -6,8 +6,8 @@ class Order
 	ORDER_CANCELLED = 0
 	ORDER_PENDING = 1
 	ORDER_COMPLETE = 2
-	attr_accessor :itemsInOrder, :order_status, :deliveryDate, :surcharge, :id
-	attr_reader :id, :finalCost
+	attr_accessor :itemsInOrder, :order_status, :deliveryDate, :orderSurcharge, :id
+	attr_reader :id, :finalCost, :orderDate, :customer
 
 	def initialize(customer, itemsInOrder, deliveryAddress, deliveryDate, specialInstructions, id=0)
 		@customer=customer
@@ -16,6 +16,8 @@ class Order
 		@deliveryDate = deliveryDate
 		@specialInstructions = specialInstructions
 		@order_status = ORDER_PENDING
+		@orderSurcharge=0
+		@orderDate=Time.now
 		if id==0
 			@id = self.object_id
 		else
@@ -84,6 +86,10 @@ class Order
 		dueWithinDays?(1)
 	end
 
+	def dueThisDate?(date)
+		@deliveryDate.day == date.day && @deliveryDate.month == date.month && deliveryDate.year == date.year && order_status != ORDER_CANCELLED
+	end
+
 	def completeWithinPastDays?(days)
 		pastDate=Time.now-days*86400 	#86,400 seconds are within a day
 		order_status==ORDER_COMPLETE && pastDate<=@deliveryDate
@@ -96,9 +102,10 @@ class Order
 
 	def calculateCost
 		cost=0
-		if @deliveryDate.saturday? || @deliveryDate.sunday?
-			cost+=@@weekendSurcharge
+		if (@deliveryDate.saturday? || @deliveryDate.sunday?) 
+			@orderSurcharge+=@@weekendSurcharge
 		end
+
 		@itemsInOrder.each {|orderItem| cost+=orderItem[0].price_per_person*orderItem[1]}
 		@finalCost=cost+@@surcharge
 		@finalCost
@@ -140,12 +147,24 @@ class Order
 		order_id+customer_info+delivery_info+special_instructions+items_info+charge_info	
 	end
 
+
 	def itemsOrdered_to_s
 		itemString=""
 		@itemsInOrder.each {|orderItem| itemString+= "\n"+orderItem[0].foodName+" $"+sprintf("%.2f",orderItem[0].price_per_person)+" x "+orderItem[1].to_s}
 		itemString
 	end
 
+	def to_JSON
+		jsonObject={}
+		jsonObject[:id]=@id
+		jsonObject[:order_date]=@orderDate
+		jsonObject[:deliveryDate]=@deliveryDate
+		jsonObject[:amount]=@finalCost
+		jsonObject[:surcharge]=@orderSurcharge
+		jsonObject[:status]=@order_status
+		jsonObject[:ordered_by]=@customer.email
+		jsonObject
+	end
 
 	def isMatch?(query)
 		@customer.isMatch?(query)

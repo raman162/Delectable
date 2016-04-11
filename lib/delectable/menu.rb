@@ -6,15 +6,18 @@ class Menu
 		@menuItems=Hash.new
 		if menuItems
 			menuItems.each do |menuItem|
-				@menuItems[menuItem.hashIdGenerator]=menuItem
+				@menuItems[menuItem.id]=menuItem
 			end
 		end
 	end
 
 
 	def addItem!(menuItem)
-		menuId=menuItem.hashIdGenerator
-		@menuItems[menuId]=menuItem unless @menuItems.has_key?(menuId)
+		if @menuItems.length > 0
+			@menuItems[menuItem.id]=menuItem unless @menuItems.has_key?(menuItem.id)
+		else
+			@menuItems[menuItem.id]=menuItem
+		end
 
 	end
 
@@ -61,6 +64,15 @@ class Menu
 		menuString
 	end
 
+	def to_JSON
+		menuItemJsonArray=[]
+		@menuItems.each do |id, menuItem|
+			menuItemHash=menuItem.to_JSON
+			menuItemJsonArray<<(menuItemHash)
+		end
+		menuItemJsonArray
+	end
+
 	def ==(menu)
 		match=true
 		if @menuItems.length == menu.menuItems.length
@@ -72,13 +84,19 @@ class Menu
 	end
 
 	def Menu.menuItemsEqual?(menu1Hash, menu2Hash)
-		menu1Hash.each do |id, menuItem|
-			other_menu_item=menu2Hash[id]
-			if other_menu_item != menuItem
-				return false
+		matchCount=0
+		menu1Hash.each do |id, menuItem1|
+			menu2Hash.each do |id, menuItem2|
+				if menuItem1 == menuItem2 
+					matchCount += 1  
+				end
 			end
 		end
-		return true
+		if matchCount == menu1Hash.length
+			return true
+		else
+			return false
+		end
 	end
 
 	alias eql? ==
