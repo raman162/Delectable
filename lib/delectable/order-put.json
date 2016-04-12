@@ -1,0 +1,17 @@
+{
+  "delivery_date": "20160301",
+  "delivery_address": "10 West 31st ST, Chicago IL 60616",
+  "personal_info": {
+    "name": "Virgil B",
+    "email": "virgil@example.com",
+    "phone": "312-456-7890"
+  },
+  "note": "Room SB-214",
+  "order_detail": [{
+    "id": 123,
+    "count": 8
+  }, {
+    "id": 124,
+    "count": 24
+  }]
+}

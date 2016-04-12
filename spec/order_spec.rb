@@ -133,6 +133,14 @@ describe Order do
 		end
 	end
 
+	describe "#isDueThisDate?" do
+
+		it "returns true for orders due the specefic date" do
+			@futureOrder.dueThisDate?(Time.now + 5*86400).should eql true
+		end
+
+	end
+
 
 	describe "#dueInTheFuture?" do
 
@@ -214,7 +222,7 @@ describe Order do
 
 		it "adds surcharge for order on weekend and doesn't on other order" do
 			Order.changeSurcharge! 0
-			@weekendOrder.calculateCost.should eql 175
+			(@weekendOrder.calculateCost+@weekendOrder.orderSurcharge).should eql 175
 			@order.calculateCost.should eql 170
 		end
 	end
@@ -268,6 +276,23 @@ describe Order do
 			@order.calculateCost
 			@order.to_s.should eql "Order Id: #{@order.id}\nCustomer Last Name: CustomerLastName\nCustomer Email: Customer@email.com\nCustomer Phone: customerPhoneNumber\nDelivery Address: deliveryAddress\nDelivery Date & Time: #{@order.deliveryDate.to_s}\nSpecial Instructions:\nspecialInstructions\nItems Ordered:\nBBQ Beef Brisket $10.00 x 15\nCoke $2.00 x 10\n\nSurcharge Included: $0.00\nTotal Cost: $170.00" 
 		end
+	end
+
+	describe "#to_JSON" do
+
+		it "creates a JSON version of the Object" do
+			@orderWithId.calculateCost
+			jsonObject={}
+			jsonObject[:id]=12345
+			jsonObject[:order_date]=@orderWithId.orderDate
+			jsonObject[:deliveryDate]=Time.new(2016, 06, 07, 3,30)
+			jsonObject[:amount]=@orderWithId.finalCost
+			jsonObject[:surcharge]=@orderWithId.orderSurcharge
+			jsonObject[:status]=@orderWithId.order_status
+			jsonObject[:ordered_by]=@orderWithId.customer.email
+			@orderWithId.to_JSON.should eql jsonObject			
+		end
+
 	end
 
 	describe "#itemsOrdered_to_s" do

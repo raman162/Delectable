@@ -10,21 +10,21 @@ describe Menu do
 		lemonChicken=Food.new "Lemon Chicken", [:chicken,:meat]
 		salmon=Food.new "Smoked Salmon", [:fish,:pescatarian]
 		@menuItems=[
-			(@menuItem1=MenuItem.new bbqBeefBrisket, 10, 10),
-			(@menuItem2=MenuItem.new coke, 2, 6),
-			(@menuItem3=MenuItem.new pepsi, 2, 6),
-			(@menuItem4=MenuItem.new bbqChicken, 5, 10),
-			(@menuItem5=MenuItem.new lemonChicken, 6, 10), 
-			(@menuItem6=MenuItem.new salmon, 10, 10)]
+			(@menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 121),
+			(@menuItem2=MenuItem.new coke, 2, 6, 122),
+			(@menuItem3=MenuItem.new pepsi, 2, 6, 123),
+			(@menuItem4=MenuItem.new bbqChicken, 5, 10, 124),
+			(@menuItem5=MenuItem.new lemonChicken, 6, 10, 125), 
+			(@menuItem6=MenuItem.new salmon, 10, 10, 126)]
 		lasagna=Food.new "Lasagna", [:pasta]
-		@menuItem7=MenuItem.new lasagna, 5, 10
+		@menuItem7=MenuItem.new lasagna, 5, 10, 128
 		@copyMenu=Menu.new [
-			(@menuItem1=MenuItem.new bbqBeefBrisket, 10, 10),
-			(@menuItem2=MenuItem.new coke, 2, 6),
-			(@menuItem3=MenuItem.new pepsi, 2, 6),
-			(@menuItem4=MenuItem.new bbqChicken, 5, 10),
-			(@menuItem5=MenuItem.new lemonChicken, 6, 10), 
-			(@menuItem6=MenuItem.new salmon, 10, 10),
+			(@menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 121),
+			(@menuItem2=MenuItem.new coke, 2, 6, 122),
+			(@menuItem3=MenuItem.new pepsi, 2, 6, 123),
+			(@menuItem4=MenuItem.new bbqChicken, 5, 10, 124),
+			(@menuItem5=MenuItem.new lemonChicken, 6, 10, 125), 
+			(@menuItem6=MenuItem.new salmon, 10, 10, 126),
 			@menuItem7]
 		@differentMenu=Menu.new [@menuItem1,@menuItem2, @menuItem3, @menuItem4, @menuItem5, @menuItem7]
 		@drinkMenu=Menu.new [@menuItem2, @menuItem3]
@@ -71,6 +71,22 @@ describe Menu do
 
 	end
 
+
+	describe "#to_JSON" do
+		
+		it "creates a Json version of the object" do
+			@menu=Menu.new [@menuItem7]
+			jsonObject={}
+			jsonObject[:id] = 128
+			jsonObject[:name] = "Lasagna"
+			jsonObject[:price_per_person] = 5
+			jsonObject[:minimum_order] = 10
+			jsonObject[:categories] = [:pasta]
+			@menu.to_JSON.should eql [jsonObject]
+		end
+	
+	end
+
 	describe "#==" do
 		it "Ensures that two objects are equal in terms ofvalues and not exact references" do
 			@menu=Menu.new @menuItems
@@ -89,6 +105,13 @@ describe Menu do
 			@menu=Menu.new @menuItems
 			@menu.addItem!(@menuItem7)
 			@menu.should eql @copyMenu
+		end
+
+		it "Adds a menu Item to a new menu" do
+			@emptyMenu=Menu.new
+			@emptyMenu.addItem! (@menuItem7)
+			@newMenu = Menu.new ([@menuItem7])
+			@emptyMenu.should eql @newMenu
 		end
 	end
 

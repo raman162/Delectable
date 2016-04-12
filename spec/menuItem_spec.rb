@@ -16,13 +16,20 @@ describe MenuItem do
 		@menuItem2=MenuItem.new @coke, 2, 6
 		@menuItem3=MenuItem.new @pepsi, 2, 6
 		@menuItem4=MenuItem.new @bbqChicken, 5, 10
-		@menuItem5=MenuItem.new @lemonChicken, 6, 10 
+		@menuItem5=MenuItem.new @lemonChicken, 6, 10
+		@menuItemWithId=MenuItem.new @coke, 3, 6, 24 
+		lasagna=Food.new "Lasagna", [:pasta]
+		@menuItem7=MenuItem.new lasagna, 5, 10, 128
 	end
 
 	describe "#new" do
 		
 		it "returns a new MenuItem Object" do
 			@menuItem1.should be_an_instance_of MenuItem
+		end
+
+		it "returns a new MenuItem Object when passed an ID" do
+			@menuItemWithId.should be_an_instance_of MenuItem
 		end
 	end
 
@@ -58,6 +65,21 @@ describe MenuItem do
 		it "returns a string of the object" do
 			@menuItem1.to_s.should eql "Name: FoodName\nPrice Per Person: $10.00\nOrder for Minimum Number of Persons: 5"
 		end
+	end
+
+
+	describe "to_JSON" do
+
+		it "returns a new MenuItem in the JSON Object format" do
+			jsonObject={}
+			jsonObject[:id] = 128
+			jsonObject[:name] = "Lasagna"
+			jsonObject[:price_per_person] = 5
+			jsonObject[:minimum_order] = 10
+			jsonObject[:categories] = [:pasta]
+			@menuItem7.to_JSON.should eql jsonObject
+		end
+
 	end
 
 

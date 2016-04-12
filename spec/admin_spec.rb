@@ -10,14 +10,14 @@ describe Admin do
 		lemonChicken=Food.new "Lemon Chicken", [:chicken,:meat]
 		salmon=Food.new "Smoked Salmon", [:fish,:pescatarian]
 		lasagna=Food.new "Lasagna", [:pasta]
-		menu=Menu.new [
-			(menuItem1=MenuItem.new bbqBeefBrisket, 10, 10),
-			(menuItem2=MenuItem.new coke, 2, 6),
-			(menuItem3=MenuItem.new pepsi, 2, 6),
-			(menuItem4=MenuItem.new bbqChicken, 5, 10),
-			(menuItem5=MenuItem.new lemonChicken, 6, 10), 
-			(menuItem6=MenuItem.new salmon, 10, 10),
-			(menuItem7=MenuItem.new lasagna, 5, 10)]
+		@menu=Menu.new [
+			(menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 123),
+			(menuItem2=MenuItem.new coke, 2, 6, 124),
+			(menuItem3=MenuItem.new pepsi, 2, 6, 125),
+			(menuItem4=MenuItem.new bbqChicken, 5, 10, 126),
+			(menuItem5=MenuItem.new lemonChicken, 6, 10, 127), 
+			(menuItem6=MenuItem.new salmon, 10, 10, 128),
+			(menuItem7=MenuItem.new lasagna, 5, 10,129)]
 		menuOrders=[[menuItem1, 15], [menuItem2, 10]]
 		deliveryDate=Time.new(2016, 06, 07, 3,30)
 		todayDate=Time.now
@@ -28,7 +28,7 @@ describe Admin do
 		tomorrowDate=Time.now + 83000
 		@customer=Customer.new "CustomerFirstName", "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
 		@johnson=Customer.new "CustomerFirstName", "Johnson", "customerPhoneNumber", "Customer@email.com"
-		@jones=Customer.new "CustomerFirstName", "jones", "customerPhoneNumber", "jones@email.com"  
+		@jones=Customer.new "CustomerFirstName", "jones", "customerPhoneNumber", "jones@email.com", 123
 		@customers=[@customer, @johnson, @jones]
 		@order=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
 		@copyOrder=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
@@ -39,8 +39,9 @@ describe Admin do
 		@oldOrder=Order.new  @jones, menuOrders, "deliveryAddress", oldDate, "specialInstructions"
 		@futureOrder=Order.new  @jones, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
 		@tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
+		@bbqOrder=Order.new @customer, [[menuItem1, 8],[menuItem4, 10]], "deliveryAddress", deliveryDate, "specialInstructions"
 		@orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder]
-		@admin=Admin.new @orders, menu, @customers
+		@admin=Admin.new @orders, @menu, @customers
 	end
 
 
@@ -67,6 +68,18 @@ describe Admin do
 
 	end
 
+	describe "#getCustomer" do
+
+		it "returns a customer with the matching id" do
+			@admin.getCustomer(123).should eql @jones
+		end
+
+
+		it "returns a nil when there is no matching id" do
+			@admin.getCustomer(12345).should eql nil
+		end
+
+	end
 
 	describe "#findCustomerOrders" do
 
@@ -103,6 +116,24 @@ describe Admin do
 
 	end
 
+	describe "#getOrdersDueThisDate" do
+
+		it "returns an array of orders that are due a specfific date" do
+			@admin.getOrdersDueThisDate(Time.now + 5*86400).should eql [@futureOrder.to_JSON]
+		end
+
+	end
+
+	describe "#addOrder!" do
+
+		it "adds a new order to the array" do
+			@admin.orders.include?(@bbqOrder).should eql false
+			@admin.addOrder!(@bbqOrder)
+			@admin.orders.include?(@bbqOrder).should eql true
+		end
+
+	end
+
 	describe "#numberOfOrdersCopmleteWithinPastMonths" do
 
 		it "returns 0 if no orders are compelted within the past month" do
@@ -134,11 +165,12 @@ describe Admin do
 		end		
 
 		it "counts the money made for orders completed within the past 9 months" do
+			Order.changeSurcharge! 0
 			@admin.orders[2].completeOrder!
 			@admin.orders[2].calculateCost
 			@admin.orders[3].completeOrder!
 			@admin.orders[3].calculateCost
-			@admin.earningsWithinPastMonths(9).should eql 340
+			@admin.earningsWithinPastMonths(9).should eql 340 
 		end
 	end
 
@@ -186,6 +218,35 @@ describe Admin do
 			Order.surchargeDates.include?(dateNow).should eql true
 			@admin.removeAllSurchargeDates!
 			Order.surchargeDates.should eql []
+		end
+	end
+
+	describe "#ordersToJSON" do
+
+		it "Converts all orders into JSON Object format" do
+			@oneOrderAdmin=Admin.new [@pastOrder], @menu, @customers
+			jsonObject={}
+			jsonObject[:id]=12345
+			jsonObject[:order_date]=@pastOrder.orderDate
+			jsonObject[:deliveryDate]=@pastOrder.deliveryDate
+			jsonObject[:amount]=@pastOrder.finalCost
+			jsonObject[:surcharge]=@pastOrder.orderSurcharge
+			jsonObject[:status]=@pastOrder.order_status
+			jsonObject[:ordered_by]=@pastOrder.customer.email
+			@oneOrderAdmin.ordersToJSON.should eql [jsonObject]
+		end
+	end
+
+	describe "#customersToJSON" do
+
+		it "Converts all customers into JSON Object Format" do
+			@oneCustomerAdmin=Admin.new [@pastOrder], @menu, [@jones]
+			jsonObject={}
+			jsonObject[:id]=123
+			jsonObject[:name]="CustomerFirstName jones"
+			jsonObject[:email]="jones@email.com"
+			jsonObject[:phone]="customerPhoneNumber"
+			@oneCustomerAdmin.customersToJSON.should eql [jsonObject]
 		end
 	end
 end

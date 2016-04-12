@@ -38,5 +38,15 @@ describe Customer do
 		end
 	end
 	
-	
+	describe "#to_JSON" do
+		it "returns a JSON object for the customer" do
+			jsonObject={}
+			jsonObject[:id]=12345
+			jsonObject[:name]="Joan Carey"
+			jsonObject[:email]="joan@hawk.com"
+			jsonObject[:phone]="3123141242"
+			@customer2.to_JSON.should eql jsonObject
+		end
+
+	end
 end

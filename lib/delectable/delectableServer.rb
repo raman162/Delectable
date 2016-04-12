@@ -44,13 +44,13 @@ lemonChicken=Food.new "Lemon Chicken", [:chicken,:meat]
 salmon=Food.new "Smoked Salmon", [:fish,:pescatarian]
 lasagna=Food.new "Lasagna", [:pasta]
 @menu=Menu.new [
-	(menuItem1=MenuItem.new bbqBeefBrisket, 10, 10),
-	(menuItem2=MenuItem.new coke, 2, 6),
-	(menuItem3=MenuItem.new pepsi, 2, 6),
-	(menuItem4=MenuItem.new bbqChicken, 5, 10),
-	(menuItem5=MenuItem.new lemonChicken, 6, 10), 
-	(menuItem6=MenuItem.new salmon, 10, 10),
-	(menuItem7=MenuItem.new lasagna, 5, 10)]
+	(menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 123),
+	(menuItem2=MenuItem.new coke, 2, 6, 124),
+	(menuItem3=MenuItem.new pepsi, 2, 6, 125),
+	(menuItem4=MenuItem.new bbqChicken, 5, 10, 126),
+	(menuItem5=MenuItem.new lemonChicken, 6, 10, 127), 
+	(menuItem6=MenuItem.new salmon, 10, 10, 128),
+	(menuItem7=MenuItem.new lasagna, 5, 10,129)]
 menuOrders=[[menuItem1, 15], [menuItem2, 10]]
 deliveryDate=Time.new(2016, 06, 07, 3,30)
 todayDate=Time.now
@@ -61,7 +61,7 @@ futureDate=Time.now + 5*86400
 tomorrowDate=Time.now + 83000
 @customer=Customer.new "CustomerFirstName", "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
 @johnson=Customer.new "CustomerFirstName", "Johnson", "customerPhoneNumber", "Customer@email.com"
-@jones=Customer.new "CustomerFirstName", "jones", "customerPhoneNumber", "jones@email.com"  
+@jones=Customer.new "CustomerFirstName", "jones", "customerPhoneNumber", "jones@email.com", 123  
 @customers=[@customer, @johnson, @jones]
 @order=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
 @copyOrder=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
@@ -94,4 +94,25 @@ end
 get '/delectable/order/:date' do
 	date=DateTime.parse(params[:date])
 	delect.admin.getOrdersDueThisDate(date).to_json
+end
+
+put '/delectable/order' do
+	return_message={}
+	@params=params
+	if @params
+		@params.to_json
+	else 
+		':('
+	end
+end
+
+
+get '/delectable/customer' do
+	delect.admin.customersToJSON.to_json
+end
+
+get '/delectable/customer/:id' do
+	id=params[:id].to_i
+	delect.admin.getCustomer(id).to_JSON.to_json
+	# id.to_i
 end

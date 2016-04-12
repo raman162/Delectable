@@ -17,6 +17,14 @@ class Admin
 		matchingCustomers
 	end
 
+	def getCustomer(id)
+		customerMatch=nil
+		@customers.each do |customer|
+			customerMatch=customer if customer.id == id
+		end
+		customerMatch
+	end
+
 	def findCustomerOrders(customer)
 		customerOrders=[]
 		customerEmail=customer.email
@@ -48,6 +56,10 @@ class Admin
 			ordersDue << order.to_JSON if order.dueThisDate?(date)
 		end
 		ordersDue
+	end
+
+	def addOrder!(order)
+		@orders << order
 	end
 
 	def numberOfOrdersCopmleteWithinPastMonths(months)
@@ -88,5 +100,13 @@ class Admin
 			orderArray << order.to_JSON
 		end
 		orderArray
+	end
+
+	def customersToJSON
+		customerArray=[]
+		@customers.each do |customer|
+			customerArray << customer.to_JSON
+		end
+		customerArray
 	end
 end

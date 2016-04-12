@@ -1,5 +1,5 @@
 class Customer
-	attr_accessor :lastName, :phoneNumber, :email
+	attr_accessor :lastName, :phoneNumber, :email, :id
 	def initialize firstName, lastName, phoneNumber, email, id=0
 		@firstName=firstName
 		@lastName=lastName
@@ -20,4 +20,12 @@ class Customer
 		@email==newEmail
 	end
 
+	def to_JSON
+		jsonObject={}
+		jsonObject[:id]=@id
+		jsonObject[:name]=@firstName +" " +@lastName
+		jsonObject[:email]=@email 
+		jsonObject[:phone]=@phoneNumber
+		jsonObject
+	end
 end
