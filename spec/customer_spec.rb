@@ -3,8 +3,8 @@ require 'spec_helper'
 describe Customer do 
 
 	before :each do
-		@customer1=Customer.new "John", "Doe", "3124598501", "john@hawk.com" 
-		@customer2=Customer.new "Joan", "Carey", "3123141242", "joan@hawk.com", 12345
+		@customer1=Customer.new "John", "3124598501", "john@hawk.com" 
+		@customer2=Customer.new "Joan", "3123141242", "joan@hawk.com", 12345
 	end
 
 	describe "#new" do
@@ -42,7 +42,7 @@ describe Customer do
 		it "returns a JSON object for the customer" do
 			jsonObject={}
 			jsonObject[:id]=12345
-			jsonObject[:name]="Joan Carey"
+			jsonObject[:name]="Joan"
 			jsonObject[:email]="joan@hawk.com"
 			jsonObject[:phone]="3123141242"
 			@customer2.to_JSON.should eql jsonObject

@@ -26,9 +26,9 @@ describe Admin do
 		oldDate=Time.now - 30*8*86400
 		futureDate=Time.now + 5*86400
 		tomorrowDate=Time.now + 83000
-		@customer=Customer.new "CustomerFirstName", "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
-		@johnson=Customer.new "CustomerFirstName", "Johnson", "customerPhoneNumber", "Customer@email.com"
-		@jones=Customer.new "CustomerFirstName", "jones", "customerPhoneNumber", "jones@email.com", 123
+		@customer=Customer.new  "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
+		@johnson=Customer.new  "Johnson", "customerPhoneNumber", "Customer@email.com"
+		@jones=Customer.new  "jones", "customerPhoneNumber", "jones@email.com", 123
 		@customers=[@customer, @johnson, @jones]
 		@order=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
 		@copyOrder=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
@@ -68,6 +68,14 @@ describe Admin do
 
 	end
 
+	describe "#doesCustomerExist?" do
+
+		it "returns true if the customer exists based on matching email" do
+			@admin.doesCustomerExist?("jones@email.com").should eql true
+		end
+
+	end
+
 	describe "#getCustomer" do
 
 		it "returns a customer with the matching id" do
@@ -87,6 +95,24 @@ describe Admin do
 			@admin.findCustomerOrders(@jones).should eql [@oldOrder, @futureOrder]
 		end	
 
+	end
+
+
+	describe "#addNewCustomer!" do
+
+		it "adds a new customer object and adds it to the customer array" do
+			newCustomer=Customer.new "Raman", "Walwyn-Venugopal", "258-725-7595", "raman@hawk.com"
+			@admin.addNewCustomer!(newCustomer)
+			@admin.customers.include?(newCustomer).should eql true
+		end
+
+		it "does not update the customer object if an existing customer with the email exists " do
+			newCustomer=Customer.new "Raman", "Walwyn-Venugopal", "258-725-7595", "raman@hawk.com"
+			@admin.addNewCustomer!(newCustomer)
+			newNewCustomer=Customer.new "Stephen", "Walwyn-Venugopal", "258-725-7595", "raman@hawk.com"
+			@admin.addNewCustomer!(newNewCustomer)
+			@admin.customers.include?(newNewCustomer).should_not eql true
+		end
 	end
 
 
@@ -221,6 +247,7 @@ describe Admin do
 		end
 	end
 
+
 	describe "#ordersToJSON" do
 
 		it "Converts all orders into JSON Object format" do
@@ -243,7 +270,7 @@ describe Admin do
 			@oneCustomerAdmin=Admin.new [@pastOrder], @menu, [@jones]
 			jsonObject={}
 			jsonObject[:id]=123
-			jsonObject[:name]="CustomerFirstName jones"
+			jsonObject[:name]="jones"
 			jsonObject[:email]="jones@email.com"
 			jsonObject[:phone]="customerPhoneNumber"
 			@oneCustomerAdmin.customersToJSON.should eql [jsonObject]

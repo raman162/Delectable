@@ -98,6 +98,18 @@ describe Menu do
 
 	end
 
+	describe "#getMenuItem" do
+
+		it "returns a menu Item when given good id" do
+			@menu=Menu.new @menuItems
+			@menu.getMenuItem(121).should eql @menuItem1
+		end
+
+		it "returns false when no menu Item exists" do
+			@menu=Menu.new @menuItems
+			@menu.getMenuItem(300).should eql false
+		end
+	end
 
 	describe "#addItem!" do
 		
@@ -157,5 +169,17 @@ describe Menu do
 
 	end
 
+	describe "#doesMenuItemExist?" do
+
+		it "returns true for a menu Item with the matching Id" do
+			@menu=Menu.new @menuItems
+			@menu.doesMenuItemExist?(121).should eql true
+		end
+
+		it "returns false for a menu Item without a matchind Id" do
+			@menu=Menu.new @menuItems
+			@menu.doesMenuItemExist?(300).should eql false
+		end
+	end
 
 end

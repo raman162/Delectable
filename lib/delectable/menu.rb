@@ -12,6 +12,15 @@ class Menu
 	end
 
 
+	def getMenuItem(id)
+		if @menuItems.has_key?(id)
+			@menuItems[id]
+		else
+			false
+		end
+	end
+
+
 	def addItem!(menuItem)
 		if @menuItems.length > 0
 			@menuItems[menuItem.id]=menuItem unless @menuItems.has_key?(menuItem.id)
@@ -52,6 +61,10 @@ class Menu
 			end
 		end
 		newMenu
+	end
+
+	def doesMenuItemExist?(id)
+		@menuItems.has_key?(id)
 	end
 
 	alias find search

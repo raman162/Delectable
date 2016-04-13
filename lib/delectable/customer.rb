@@ -1,8 +1,7 @@
 class Customer
-	attr_accessor :lastName, :phoneNumber, :email, :id
-	def initialize firstName, lastName, phoneNumber, email, id=0
-		@firstName=firstName
-		@lastName=lastName
+	attr_accessor :name, :phoneNumber, :email, :id
+	def initialize name, phoneNumber, email, id=0
+		@name=name
 		@phoneNumber=phoneNumber
 		@email=email
 		if id == 0
@@ -13,7 +12,7 @@ class Customer
 	end
 
 	def isMatch?(query)
-		@lastName.downcase.include?(query.downcase) || @phoneNumber.downcase.include?(query.downcase) || @email.downcase.include?(query.downcase)
+		@name.downcase.include?(query.downcase) || @phoneNumber.downcase.include?(query.downcase) || @email.downcase.include?(query.downcase)
 	end
 
 	def hasSameEmail?(newEmail)
@@ -23,7 +22,7 @@ class Customer
 	def to_JSON
 		jsonObject={}
 		jsonObject[:id]=@id
-		jsonObject[:name]=@firstName +" " +@lastName
+		jsonObject[:name]=@name
 		jsonObject[:email]=@email 
 		jsonObject[:phone]=@phoneNumber
 		jsonObject

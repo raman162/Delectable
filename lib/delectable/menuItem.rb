@@ -10,8 +10,7 @@ class MenuItem
 		if id
 			@id = id
 		else
-			id=@@id_generator
-			@@id_generator+=1
+			@id = self.object_id
 		end
 	end
 

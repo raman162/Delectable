@@ -25,7 +25,7 @@ describe Order do
 		futureDate=Time.now + 5*86400
 		eightDayDate=Time.now + 8*86400
 		tomorrowDate=Time.now + 83000
-		customer=Customer.new "CustomerFirstName", "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
+		customer=Customer.new "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
 		@order=Order.new  customer , menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
 		@copyOrder=Order.new  customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
 		@todayOrder=Order.new  customer, menuOrders, "deliveryAddress", todayDate, "specialInstructions"
@@ -36,6 +36,7 @@ describe Order do
 		@futureOrder=Order.new  customer, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
 		@dueInEightdayOrder=Order.new  customer, menuOrders, "deliveryAddress", eightDayDate, "specialInstructions"
 		@tomorrowOrder=Order.new  customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
+		@emptyOrder=Order.new customer, [], "delivery", tomorrowDate, "specialInstructions"
 	end
 
 
@@ -48,6 +49,10 @@ describe Order do
 
 		it "return a new Order Object when given an id" do
 			@orderWithId.should be_an_instance_of Order
+		end
+
+		it "returns a new ORder object when given an empty array of menuItem" do
+			@emptyOrder.should be_an_instance_of Order
 		end
 	end
 
@@ -274,7 +279,7 @@ describe Order do
 		it "creates a nice string of the order" do
 			Order.changeSurcharge! 0
 			@order.calculateCost
-			@order.to_s.should eql "Order Id: #{@order.id}\nCustomer Last Name: CustomerLastName\nCustomer Email: Customer@email.com\nCustomer Phone: customerPhoneNumber\nDelivery Address: deliveryAddress\nDelivery Date & Time: #{@order.deliveryDate.to_s}\nSpecial Instructions:\nspecialInstructions\nItems Ordered:\nBBQ Beef Brisket $10.00 x 15\nCoke $2.00 x 10\n\nSurcharge Included: $0.00\nTotal Cost: $170.00" 
+			@order.to_s.should eql "Order Id: #{@order.id}\nCustomer Name: CustomerLastName\nCustomer Email: Customer@email.com\nCustomer Phone: customerPhoneNumber\nDelivery Address: deliveryAddress\nDelivery Date & Time: #{@order.deliveryDate.to_s}\nSpecial Instructions:\nspecialInstructions\nItems Ordered:\nBBQ Beef Brisket $10.00 x 15\nCoke $2.00 x 10\n\nSurcharge Included: $0.00\nTotal Cost: $170.00" 
 		end
 	end
 

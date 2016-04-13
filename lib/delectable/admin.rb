@@ -17,6 +17,15 @@ class Admin
 		matchingCustomers
 	end
 
+	def doesCustomerExist?(email)
+		matchingCustomers=self.searchCustomers(email)
+		if matchingCustomers.length > 0
+			true
+		else
+			false
+		end
+	end
+
 	def getCustomer(id)
 		customerMatch=nil
 		@customers.each do |customer|
@@ -32,6 +41,10 @@ class Admin
 			customerOrders << order if order.isMatch?(customerEmail)
 		end
 		customerOrders
+	end
+
+	def addNewCustomer!(newCustomer)
+		@customers << newCustomer unless doesCustomerExist?(newCustomer.email)
 	end
 
 	def getOrdersDueToday
@@ -102,7 +115,7 @@ class Admin
 		orderArray
 	end
 
-	def customersToJSON
+	def customersToJSON()
 		customerArray=[]
 		@customers.each do |customer|
 			customerArray << customer.to_JSON

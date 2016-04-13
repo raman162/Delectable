@@ -29,9 +29,38 @@ class DelectableServer
 		@admin=Admin.new customers, orders, menu
 	end
 
-	def getMenu
-		
+	def getMenu	
 		@admin.menu
+	end
+
+	def createOrder(customer, deliveryAddress, deliveryDate, specialInstructions, order_details)
+		newOrder = Order.new(customer, [], deliveryAddress, deliveryDate, specialInstructions)
+		menuItems=self.getMenuItems(order_details)
+		menuItems.each do |menuItem|
+			newOrder.addItem!(menuItem[0], menuItem[1])
+		end
+		@admin.addOrder!(newOrder)
+		newOrder
+	end	
+
+	def createCustomer(name, email, phone)
+		if @admin.doesCustomerExist?(email)
+			false
+		else
+			newCustomer = Customer.new(name, email, phone)
+			@admin.addNewCustomer!(newCustomer)
+			newCustomer
+		end
+	end
+
+	def getMenuItems(order_details)
+		itemsThatExist=[]
+		order_details.each do |order_detail|
+			if @admin.menu.doesMenuItemExist?(order_detail["id"])
+				itemsThatExist << [@admin.menu.getMenuItem(order_detail["id"]), order_detail["count"]]
+			end
+		end
+		itemsThatExist
 	end
 
 end
@@ -59,9 +88,9 @@ weekendDate=Time.new(2016,03,19, 3,30)
 oldDate=Time.now - 30*8*86400
 futureDate=Time.now + 5*86400
 tomorrowDate=Time.now + 83000
-@customer=Customer.new "CustomerFirstName", "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
-@johnson=Customer.new "CustomerFirstName", "Johnson", "customerPhoneNumber", "Customer@email.com"
-@jones=Customer.new "CustomerFirstName", "jones", "customerPhoneNumber", "jones@email.com", 123  
+@customer=Customer.new  "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
+@johnson=Customer.new  "Johnson", "customerPhoneNumber", "Customer@email.com"
+@jones=Customer.new  "jones", "customerPhoneNumber", "jones@email.com", 123  
 @customers=[@customer, @johnson, @jones]
 @order=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
 @copyOrder=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
@@ -78,6 +107,8 @@ set :port, 8080
 set :environment, :production
 
 
+
+#MENU
 get '/delectable/menu' do
 	delect.admin.menu.to_JSON.to_json
 end 
@@ -87,6 +118,9 @@ get '/delectable/menu/:id' do
 	delect.admin.menu.menuItems[idValueString.to_i].to_JSON.to_json
 end
 
+
+
+#ORDER
 get '/delectable/order' do
 	delect.admin.ordersToJSON.to_json
 end
@@ -98,17 +132,54 @@ end
 
 put '/delectable/order' do
 	return_message={}
-	@params=params
+	@params=JSON.parse(request.env["rack.input"].read)
 	if @params
-		@params.to_json
+		customerName=@params["personal_info"]["name"]
+		customerEmail=@params["personal_info"]["email"]
+		customerPhone=@params["personal_info"]["phone"]
+		newCustomer=delect.createCustomer(customerName, customerEmail, customerPhone)
+		deliveryAddress=@params["delivery_address"]		
+		deliveryDate=DateTime.parse(@params["delivery_date"])
+		specialInstructions=@params["note"]
+		orderDetails=@params["order_detail"]
+		deliveryAddress.to_json
+		newOrder=delect.createOrder(newCustomer, deliveryAddress, deliveryDate,specialInstructions,orderDetails)
+		jsonObject={}
+		jsonObject[:id]=newOrder.id
+		jsonObject[:cancel_url]="/order/cancel/"+newOrder.id.to_s
+		jsonObject
 	else 
 		':('
 	end
 end
 
 
+
+
+#CUSTOMER
 get '/delectable/customer' do
-	delect.admin.customersToJSON.to_json
+	if params['key']
+		query=params['key']
+		matchingCustomers=delect.admin.searchCustomers(query)
+		jsonReturn=[]
+		if matchingCustomers
+			matchingCustomers.each do |customer|
+				jsonReturn << customer.to_JSON
+			end
+			jsonReturn.to_json
+		else
+			'Something is wrong'
+		end
+		# delect.admin.searchCustomers(query)
+		# customerMathchesJson=[]
+		# customerMatches.each do |customer|
+		# 	customerMathchesJson << customer.to_JSON
+		# end
+		# customerMatchesJson.to_json
+		
+	else
+		delect.admin.customersToJSON.to_json
+	end
 end
 
 get '/delectable/customer/:id' do
@@ -116,3 +187,16 @@ get '/delectable/customer/:id' do
 	delect.admin.getCustomer(id).to_JSON.to_json
 	# id.to_i
 end
+
+
+get '/
+delectable/admin/surcharge' do
+	jsonObject={}
+	if Order.surcharge 
+		jsonObject[:surcharge]=Order.surcharge
+		jsonObject.to_json
+	else
+		'This is not working Sir'
+	end
+end
+

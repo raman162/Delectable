@@ -139,7 +139,7 @@ class Order
 
 	def to_s
 		order_id="Order Id: #{@id}"
-		customer_info="\nCustomer Last Name: #{@customer.lastName}\nCustomer Email: #{@customer.email}\nCustomer Phone: #{@customer.phoneNumber}"
+		customer_info="\nCustomer Name: #{@customer.name}\nCustomer Email: #{@customer.email}\nCustomer Phone: #{@customer.phoneNumber}"
 		delivery_info="\nDelivery Address: #{@deliveryAddress}\nDelivery Date & Time: #{@deliveryDate.to_s}"
 		special_instructions="\nSpecial Instructions:\n#{@specialInstructions}"	
 		items_info="\nItems Ordered:"+self.itemsOrdered_to_s
