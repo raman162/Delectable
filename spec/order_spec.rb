@@ -146,6 +146,16 @@ describe Order do
 
 	end
 
+	describe "#dueWithinTheRange?" do
+
+		it "returns true for orders due within a specefic range of dates" do
+			@todayOrder.dueWithinTheRange?(Time.now-86400, Time.now+86400).should eql true
+		end
+
+		it "returns false for order not in range of dates" do
+			@todayOrder.dueWithinTheRange?(Time.now-4*86400, Time.now-86400).should eql false
+		end
+	end
 
 	describe "#dueInTheFuture?" do
 

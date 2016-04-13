@@ -182,14 +182,7 @@ get '/delectable/customer' do
 			jsonReturn.to_json
 		else
 			'Something is wrong'
-		end
-		# delect.admin.searchCustomers(query)
-		# customerMathchesJson=[]
-		# customerMatches.each do |customer|
-		# 	customerMathchesJson << customer.to_JSON
-		# end
-		# customerMatchesJson.to_json
-		
+		end		
 	else
 		delect.admin.customersToJSON.to_json
 	end

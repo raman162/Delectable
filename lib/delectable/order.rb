@@ -82,6 +82,22 @@ class Order
 		order_status == ORDER_PENDING && dueDate >= @deliveryDate && @deliveryDate >= Time.now
 	end
 
+	def dueWithinTheRange?(startDate, endDate)
+		match=nil
+		if startDate == false && endDate == false
+			match=true
+		else
+			match=@deliveryDate.between?(startDate,endDate)
+		end
+		if startDate==false && endDate!=false
+			match=@deliveryDate < endDate
+		end
+		if endDate==false && startDate!=false
+			match=@deliveryDate > startDate
+		end
+		match
+	end
+
 	def dueTomorrow?
 		dueWithinDays?(1)
 	end
