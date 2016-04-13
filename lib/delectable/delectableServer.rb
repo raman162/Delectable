@@ -47,7 +47,7 @@ class DelectableServer
 		if @admin.doesCustomerExist?(email)
 			false
 		else
-			newCustomer = Customer.new(name, email, phone)
+			newCustomer = Customer.new(name, phone, email)
 			@admin.addNewCustomer!(newCustomer)
 			newCustomer
 		end
@@ -122,12 +122,18 @@ end
 
 #ORDER
 get '/delectable/order' do
-	delect.admin.ordersToJSON.to_json
+	if params['date']
+		date=DateTime.parse(params['date'])
+		delect.admin.getOrdersDueThisDate(date).to_json
+	else
+		delect.admin.ordersToJSON.to_json
+	end
 end
 
-get '/delectable/order/:date' do
-	date=DateTime.parse(params[:date])
-	delect.admin.getOrdersDueThisDate(date).to_json
+
+get '/delectable/order/:id' do
+	id=params[:id].to_i
+	delect.admin.getOrder(id).to_JSON.to_json
 end
 
 put '/delectable/order' do
@@ -151,6 +157,13 @@ put '/delectable/order' do
 	else 
 		':('
 	end
+end
+
+post '/delectable/order/cancel/:id' do
+	delect.admin.cancelOrder!(params[:id].to_i)
+	jsonObject={}
+	jsonObject[:id]=params[:id].to_i
+	jsonObject.to_json
 end
 
 

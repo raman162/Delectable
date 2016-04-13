@@ -25,7 +25,7 @@ describe Admin do
 		weekendDate=Time.new(2016,03,19, 3,30)
 		oldDate=Time.now - 30*8*86400
 		futureDate=Time.now + 5*86400
-		tomorrowDate=Time.now + 83000
+		tomorrowDate=Time.now + 86400
 		@customer=Customer.new  "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
 		@johnson=Customer.new  "Johnson", "customerPhoneNumber", "Customer@email.com"
 		@jones=Customer.new  "jones", "customerPhoneNumber", "jones@email.com", 123
@@ -150,6 +150,18 @@ describe Admin do
 
 	end
 
+	describe "#getOrder" do
+
+		it "returns the order object" do
+			@admin.getOrder(12345).should eql @pastOrder
+		end
+
+		it "returns false if the order object does not exist" do
+			@admin.getOrder(1).should eql false
+		end
+
+	end
+
 	describe "#addOrder!" do
 
 		it "adds a new order to the array" do
@@ -158,6 +170,14 @@ describe Admin do
 			@admin.orders.include?(@bbqOrder).should eql true
 		end
 
+	end
+
+	describe "#cancelOrder!" do
+
+		it "changes the status of an order to cancelled" do
+			@admin.cancelOrder!(12345)
+			@admin.getOrder(12345).order_status.should eql 0
+		end
 	end
 
 	describe "#numberOfOrdersCopmleteWithinPastMonths" do

@@ -47,6 +47,21 @@ class Admin
 		@customers << newCustomer unless doesCustomerExist?(newCustomer.email)
 	end
 
+
+	def getOrder(id)
+		orderMatch=false
+		@orders.each do |order|
+			orderMatch=order if order.id==id
+		end
+		orderMatch
+	end
+
+	def cancelOrder!(id)
+		@orders.each do |order|
+			order.cancelOrder! if order.id==id
+		end
+	end
+
 	def getOrdersDueToday
 		ordersDueToday=[]
 		@orders.each do |order|
