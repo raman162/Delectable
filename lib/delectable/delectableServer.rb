@@ -5,6 +5,7 @@ require_relative 'menu.rb'
 require_relative 'order.rb'
 require_relative 'customer.rb'
 require_relative 'admin.rb'
+require_relative 'report.rb'
 
 require 'sinatra'
 require 'json'
@@ -25,7 +26,8 @@ require 'date'
 class DelectableServer
 	attr_accessor :admin
 
-	def initialize customers, orders, menu
+	def initialize customers, orders, menu, reports
+		@reports=reports
 		@admin=Admin.new customers, orders, menu
 	end
 
@@ -61,6 +63,24 @@ class DelectableServer
 			end
 		end
 		itemsThatExist
+	end
+
+	def getCategories(categoriesJson)
+		categories=[]
+		categoriesJson.each do |catJson|
+			categories << catJson["name"].gsub(/\s+/, "_").downcase.to_sym
+		end
+		categories
+	end
+
+	def getCustomerOrdersJson(id)
+		customer=@admin.getCustomer(id)
+		customerOrders=@admin.findCustomerOrders(customer)
+		jsonOrders=[]
+		customerOrders.each do |order|
+			jsonOrders << order.to_ShortJson
+		end
+		jsonOrders
 	end
 
 end
@@ -102,7 +122,7 @@ tomorrowDate=Time.now + 83000
 @futureOrder=Order.new  @jones, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
 @tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
 @orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder, @weekendOrder]
-delect = DelectableServer.new(@orders, @menu, @customers)
+delect = DelectableServer.new(@orders, @menu, @customers, [])
 set :port, 8080
 set :environment, :production
 
@@ -137,7 +157,6 @@ get '/delectable/order/:id' do
 end
 
 put '/delectable/order' do
-	return_message={}
 	@params=JSON.parse(request.env["rack.input"].read)
 	if @params
 		customerName=@params["personal_info"]["name"]
@@ -190,13 +209,38 @@ end
 
 get '/delectable/customer/:id' do
 	id=params[:id].to_i
-	delect.admin.getCustomer(id).to_JSON.to_json
-	# id.to_i
+	jsonObject=delect.admin.getCustomer(id).to_JSON
+	jsonObject[:orders]=delect.getCustomerOrdersJson(id)
+	jsonObject
 end
 
+#REPORT
 
-get '/
-delectable/admin/surcharge' do
+get 'delectable/report' do
+
+end
+
+#ADMIN
+put '/delectable/admin/menu' do
+	@params=JSON.parse(request.env["rack.input"].read)
+	if @params
+		foodName=@params["name"]
+		categoriesJson=@params["categories"]
+		categories=delect.getCategories(categoriesJson)
+		newFood=Food.new(foodName, categories)
+		pricePerPerson=@params["price_per_person"]
+		minOrder=@params["minimum_order"]
+		newMenuItem=MenuItem.new(newFood, pricePerPerson, minOrder)
+		delect.admin.menu.addItem!(newMenuItem)
+	end
+end
+
+post '/delectable/admin/menu/:id' do
+	@params=JSON.parse(request.env["rack.input"].read)
+	delect.admin.menu.menuItems[@params["id"]].price_per_person=@params["price_per_person"]
+end
+
+get '/delectable/admin/surcharge' do
 	jsonObject={}
 	if Order.surcharge 
 		jsonObject[:surcharge]=Order.surcharge
@@ -206,3 +250,15 @@ delectable/admin/surcharge' do
 	end
 end
 
+post '/delectable/admin/surcharge' do
+	@params=JSON.parse(request.env["rack.input"].read)
+	delect.admin.changeSurcharge!(@params['surcharge'])
+end
+
+
+post '/delectable/admin/delivery/:id' do
+	delect.admin.changeOrderStatusToDelivered!(params[:id].to_i)
+	jsonObject={}
+	jsonObject[:id]=params[:id].to_i
+	jsonObject.to_json
+end

@@ -180,6 +180,13 @@ describe Admin do
 		end
 	end
 
+	describe "#changeOrderStatusToDelivered!" do
+		it "changes the status of the order to delivered" do
+			@admin.changeOrderStatusToDelivered!(12345)
+			@admin.getOrder(12345).order_status.should eql 2
+		end
+	end
+
 	describe "#numberOfOrdersCopmleteWithinPastMonths" do
 
 		it "returns 0 if no orders are compelted within the past month" do
@@ -280,6 +287,7 @@ describe Admin do
 			jsonObject[:surcharge]=@pastOrder.orderSurcharge
 			jsonObject[:status]=@pastOrder.order_status
 			jsonObject[:ordered_by]=@pastOrder.customer.email
+			jsonObject[:order_detail]=@pastOrder.getJsonOrderDetail
 			@oneOrderAdmin.ordersToJSON.should eql [jsonObject]
 		end
 	end

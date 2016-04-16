@@ -42,9 +42,13 @@ describe Report do
 		@tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
 		@bbqOrder=Order.new @customer, [[menuItem1, 8],[menuItem4, 10]], "deliveryAddress", deliveryDate, "specialInstructions"
 		@orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder]
-		@revenueAllReport = RevenueReport.new @orders
-		@revenueTodayReport = RevenueReport.new @orders, todayDate
-		@revenueRangeReport = RevenueReport.new @orders, pastDate, futureDate
+		@revenueAllReport = RevenueReport.new @orders, "Revenue Report"
+		@revenueTodayReport = RevenueReport.new @orders, "Revenue Report", todayDate
+		@revenueRangeReport = RevenueReport.new @orders, "Revenue Report", pastDate, futureDate
+		@revenueReportWithId=RevenueReport.new @orders, "Revenue Report", pastDate, futureDate, 12345
+		@twoOrderReport = OrderReport.new [@todayOrder, @tomorrowOrder], "Orders delivery report"
+		@todayOrderReport = OrderReport.new [@todayOrder, @tomorrowOrder], "Orders to deliver today"
+		@tomorrowOrderReport = OrderReport.new [@todayOrder, @tomorrowOrder], "Orders to deliver tomorrow"
 	end
 
 	describe "#new" do
@@ -60,20 +64,25 @@ describe Report do
 		it "returns a new RevenueReport object when given, orders, startDate, and endDate" do
 			@revenueRangeReport.should be_an_instance_of RevenueReport
 		end
+
+		it "returns a RevenueReport object when given an id" do
+			@revenueReportWithId.should be_an_instance_of RevenueReport
+		end
 	end
 
 	describe "#generateRevenueReport" do
 
 		it "returnsAllOfTheRevenue" do
-			report=@revenueAllReport.getRevenueReport
-			report{:name}.should eql "Revenue report"
-			report{:start_date}.should eql "NA"
-			report{:end_date}.should eql "NA"
-			report{:orders_placed}.should eql 6
-			report{:orders_cancelled}.should eql 0
-			report{:orders_open}.should eql 6
-			report{:food_revenue}.should eql 0
-			report{:surcharge_revenue}.should eql 0
+			report=@revenueAllReport.generateRevenueReport
+			report[:name].should eql "Revenue Report"
+			report[:start_date].should eql "NA"
+			report[:end_date].should eql "NA"
+			report[:orders_placed].should eql 6
+			report[:orders_cancelled].should eql 0
+			report[:orders_open].should eql 6
+			report[:food_revenue].should eql 1020
+			puts report[:surcharge_revenue]
+			[0,5,10].include?(report[:surcharge_revenue]).should eql true
 		end
 	end
 
@@ -81,11 +90,17 @@ describe Report do
 	describe "#countOrdersCancelled" do
 
 		it "returns the nubmer of orders cancelled" do
-			@revenueAllReport.countOrdersCancelled.shoudl eql 0
+			@revenueAllReport.countOrdersCancelled.should eql 0
 		end
 
 	end
 
+	describe "#countOrdersOpen" do
+
+		it "returns the nubmer of orders that are open" do
+			@revenueAllReport.countOrdersOpen.should eql 6
+		end
+	end
 
 	describe "#getFilteredOrders" do
 
@@ -93,5 +108,72 @@ describe Report do
 			@revenueAllReport.getFilteredOrders.should eql @orders
 		end
 
+	end
+
+	describe "#calculateFoodRevenue" do
+
+		it "returns the revenue that is expected" do
+			@revenueAllReport.calculateFoodRevenue.should eql 1020
+		end
+	end
+
+	describe "#calculateSurchargeRevenue" do
+
+		it "returns the surcharge revenue for the orders" do
+			[0,5].include?(@revenueAllReport.calculateSurchargeRevenue).should eql true
+		end
+	end
+
+	describe "#changeStartDate!" do
+
+		it 'changes the start Date for a report' do
+			@revenueAllReport.changeStartDate!(Time.now)
+			@revenueAllReport.startDate.should_not eql false
+		end
+	end
+
+	describe "#changeEndDate!" do
+		it 'changes the end date for a report' do
+			@revenueAllReport.changeEndDate!(Time.now)
+			@revenueAllReport.endDate.should_not eql false
+		end
+	end
+
+	describe "#generateOrderReport" do
+		
+		it "should return a report with the two Orders" do
+			report=@twoOrderReport.generateOrderReport
+			report[:name].should eql "Orders delivery report" 
+			ordersJson=[]
+			ordersJson << @todayOrder.to_JSON
+			ordersJson << @tomorrowOrder.to_JSON
+			report[:orders].should eql ordersJson
+		end
+	end
+
+	describe "#generateTodayOrderReport" do
+
+
+		it "should return a report with today's orders" do
+			report=@todayOrderReport.generateTodayOrderReport
+			report[:name].should eql "Orders to deliver today"
+			report[:orders].should eql [@todayOrder.to_JSON]
+		end
+	end
+
+	describe "#generateTomorrowOrderReport" do
+
+		it "should return a report with tomorrow's orders" do
+			report=@tomorrowOrderReport.generateTomorrowOrderReport
+			report[:name].should eql "Orders to deliver tomorrow"
+			report[:orders].should eql [@tomorrowOrder.to_JSON]
+		end
+	end
+
+	describe "#to_JSON" do
+		it "returns the json version of the report" do
+			jsonObject={:id => 12345, :name => "Revenue Report"}
+			@revenueReportWithId.to_JSON.should eql jsonObject
+		end
 	end
 end

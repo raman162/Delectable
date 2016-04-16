@@ -10,8 +10,8 @@ describe Order do
 		lemonChicken=Food.new "Lemon Chicken", [:chicken,:meat]
 		salmon=Food.new "Smoked Salmon", [:fish,:pescatarian]
 		@menuItems=[
-			(@menuItem1=MenuItem.new bbqBeefBrisket, 10, 10),
-			(@menuItem2=MenuItem.new coke, 2, 6),
+			(@menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 123),
+			(@menuItem2=MenuItem.new coke, 2, 6, 124),
 			(@menuItem3=MenuItem.new pepsi, 2, 6),
 			(@menuItem4=MenuItem.new bbqChicken, 5, 10),
 			(@menuItem5=MenuItem.new lemonChicken, 6, 10), 
@@ -155,6 +155,14 @@ describe Order do
 		it "returns false for order not in range of dates" do
 			@todayOrder.dueWithinTheRange?(Time.now-4*86400, Time.now-86400).should eql false
 		end
+
+		it "returns false for when given end date that was yesterday and no start date" do
+			@todayOrder.dueWithinTheRange?(false,Time.now-86400).should eql false
+		end
+
+		it "returns true for when given start date in past and false end date" do
+			@todayOrder.dueWithinTheRange?(Time.now-86400, false).should eql true
+		end
 	end
 
 	describe "#dueInTheFuture?" do
@@ -241,6 +249,7 @@ describe Order do
 			@order.calculateCost.should eql 170
 		end
 	end
+	
 
 	describe "#changeSurcharge!" do
 
@@ -305,9 +314,43 @@ describe Order do
 			jsonObject[:surcharge]=@orderWithId.orderSurcharge
 			jsonObject[:status]=@orderWithId.order_status
 			jsonObject[:ordered_by]=@orderWithId.customer.email
+			jsonObject[:order_detail]=@orderWithId.getJsonOrderDetail
 			@orderWithId.to_JSON.should eql jsonObject			
 		end
 
+	end
+
+	describe "#getJsonOrderDetail" do
+
+		it "gets the Order Detail in Json Format" do
+			orderDetail=@order.getJsonOrderDetail
+			jsonMenuItem1={}
+			jsonMenuItem1[:id]=123
+			jsonMenuItem1[:name]="BBQ Beef Brisket"
+			jsonMenuItem1[:count]=15
+			jsonMenuItem2={}
+			jsonMenuItem2[:id]=124
+			jsonMenuItem2[:name]="Coke"
+			jsonMenuItem2[:count]=10
+			jsonObject=[jsonMenuItem1,jsonMenuItem2]
+			orderDetail.should eql jsonObject
+		end
+	end
+
+
+	describe "#to_ShortJson" do
+
+		it "gets a shorter version of the Json object" do
+			@orderWithId.calculateCost
+			jsonObject={}
+			jsonObject[:id]=12345
+			jsonObject[:order_date]=@orderWithId.orderDate
+			jsonObject[:deliveryDate]=Time.new(2016, 06, 07, 3,30)
+			jsonObject[:amount]=@orderWithId.finalCost
+			jsonObject[:surcharge]=@orderWithId.orderSurcharge
+			jsonObject[:status]=@orderWithId.order_status
+			@orderWithId.to_ShortJson.should eql jsonObject
+		end 
 	end
 
 	describe "#itemsOrdered_to_s" do

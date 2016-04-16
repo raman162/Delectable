@@ -47,7 +47,6 @@ class Admin
 		@customers << newCustomer unless doesCustomerExist?(newCustomer.email)
 	end
 
-
 	def getOrder(id)
 		orderMatch=false
 		@orders.each do |order|
@@ -59,6 +58,12 @@ class Admin
 	def cancelOrder!(id)
 		@orders.each do |order|
 			order.cancelOrder! if order.id==id
+		end
+	end
+
+	def changeOrderStatusToDelivered!(id)
+		@orders.each do |order|
+			order.completeOrder! if order.id==id
 		end
 	end
 
@@ -130,7 +135,7 @@ class Admin
 		orderArray
 	end
 
-	def customersToJSON()
+	def customersToJSON
 		customerArray=[]
 		@customers.each do |customer|
 			customerArray << customer.to_JSON

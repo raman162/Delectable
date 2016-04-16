@@ -86,7 +86,8 @@ class Order
 		match=nil
 		if startDate == false && endDate == false
 			match=true
-		else
+		end
+		if startDate!=false && endDate!=false
 			match=@deliveryDate.between?(startDate,endDate)
 		end
 		if startDate==false && endDate!=false
@@ -126,6 +127,7 @@ class Order
 		@finalCost=cost+@@surcharge
 		@finalCost
 	end
+	
 
 	def Order.changeSurcharge! newSurcharge
 		@@surcharge = newSurcharge
@@ -179,7 +181,25 @@ class Order
 		jsonObject[:surcharge]=@orderSurcharge
 		jsonObject[:status]=@order_status
 		jsonObject[:ordered_by]=@customer.email
+		jsonObject[:order_detail]=self.getJsonOrderDetail
 		jsonObject
+	end
+
+	def getJsonOrderDetail
+		jsonOrderDetail=[]
+		@itemsInOrder.each do |item|
+			jsonItem={:id => item[0].id, :name=>item[0].foodName, :count => item[1]}
+			jsonOrderDetail << jsonItem
+		end
+		jsonOrderDetail
+	end
+
+
+	def to_ShortJson
+		shortJson=self.to_JSON
+		shortJson.delete(:order_detail)
+		shortJson.delete(:ordered_by)
+		shortJson
 	end
 
 	def isMatch?(query)
