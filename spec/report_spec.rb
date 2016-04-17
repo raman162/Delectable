@@ -70,10 +70,10 @@ describe Report do
 		end
 	end
 
-	describe "#generateRevenueReport" do
+	describe "#generateReport" do
 
 		it "returnsAllOfTheRevenue" do
-			report=@revenueAllReport.generateRevenueReport
+			report=@revenueAllReport.generateReport
 			report[:name].should eql "Revenue Report"
 			report[:start_date].should eql "NA"
 			report[:end_date].should eql "NA"
@@ -139,10 +139,10 @@ describe Report do
 		end
 	end
 
-	describe "#generateOrderReport" do
+	describe "#generateReport" do
 		
 		it "should return a report with the two Orders" do
-			report=@twoOrderReport.generateOrderReport
+			report=@twoOrderReport.generateReport
 			report[:name].should eql "Orders delivery report" 
 			ordersJson=[]
 			ordersJson << @todayOrder.to_JSON
@@ -174,6 +174,13 @@ describe Report do
 		it "returns the json version of the report" do
 			jsonObject={:id => 12345, :name => "Revenue Report"}
 			@revenueReportWithId.to_JSON.should eql jsonObject
+		end
+	end
+
+	describe "#==" do
+		it "checks to see if two objects are equal by name" do
+			newTodayReport=OrderReport.new [@todayOrder, @tomorrowOrder], "Orders to deliver today"
+			@todayOrderReport.should eql newTodayReport
 		end
 	end
 end

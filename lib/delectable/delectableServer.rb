@@ -83,6 +83,38 @@ class DelectableServer
 		jsonOrders
 	end
 
+	def generateReports!
+		todayReport=OrderReport.new(@admin.orders, "Orders to deliver today")
+		jsonReport=todayReport.generateTodayOrderReport
+		tomorrowReport=OrderReport.new(@admin.orders, "Orders to deliver tomrrow")
+		jsonReport=tomorrowReport.generateTomorrowOrderReport
+		orderReport=OrderReport.new(@admin.orders, "Orders delivery report")
+		revenueReport=RevenueReport.new(@admin.orders, "Revenue report")
+		@reports.collect!{|report| (report==todayReport) ? todayReport : report}
+		@reports.collect!{|report| (report==tomorrowReport) ? tomorrowReport : report}
+		@reports.collect!{|report| (report==orderReport) ? orderReport : report}
+		@reports.collect!{|report| (report==revenueReport) ? revenueReport : report}
+		@reports << todayReport unless @reports.include?(todayReport)
+		@reports << tomorrowReport unless @reports.include?(tomorrowReport)
+		@reports << orderReport unless @reports.include?(orderReport)
+		@reports << revenueReport unless @reports.include?(revenueReport)
+	end
+
+	def getJsonReports
+		jsonObject=[]
+		@reports.each do |report|
+			jsonObject << report.to_JSON
+		end
+		jsonObject
+	end
+
+	def getReport(id)
+		reportMatch=false
+		@reports.each do |report|
+			reportMatch=report if report.id==id
+		end
+		reportMatch
+	end	
 end
 
 bbqBeefBrisket=Food.new "BBQ Beef Brisket", [:beef,:meat]
@@ -122,7 +154,7 @@ tomorrowDate=Time.now + 83000
 @futureOrder=Order.new  @jones, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
 @tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
 @orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder, @weekendOrder]
-delect = DelectableServer.new(@orders, @menu, @customers, [])
+delect = DelectableServer.new(@orders, @menu, @customers, [OrderReport.new(@orders, "TestReport", false, false, 1234)])
 set :port, 8080
 set :environment, :production
 
@@ -215,10 +247,27 @@ get '/delectable/customer/:id' do
 end
 
 #REPORT
-
-get 'delectable/report' do
-
+get '/delectable/report' do
+	delect.generateReports!
+	reports=delect.getJsonReports
+	reports.to_json
 end
+
+
+get "/delectable/report/:id" do
+	id=params[:id].to_i
+	report=delect.getReport(id)
+	if params['start_date']
+		startDate=Time.parse(params['start_date'])
+		report.changeStartDate!(startDate)
+	end
+	if params['end_date']
+		endDate=Time.parse(params['end_date'])
+		report.changeEndDate!(endDate)
+	end
+	jsonObject=report.generateReport
+	
+end	
 
 #ADMIN
 put '/delectable/admin/menu' do

@@ -1,12 +1,14 @@
 class Report
 
 	attr_accessor :orders, :name, :startDate, :endDate, :id, :filteredOrders
+	attr_reader :creationDate
 
 	def initialize orders, name, startDate=false, endDate=false, id=false
 		@orders=orders
 		@name=name
 		@startDate=startDate
 		@endDate=endDate
+		@creationDate=Time.now
 		if id==false
 			@id=self.object_id
 		else
@@ -22,22 +24,30 @@ class Report
 	end
 
 	def changeStartDate!(newStartDate)
-		@startDate=newStartDate if newStartDate.class == Time
+		@startDate=newStartDate
 	end
 
 	def changeEndDate!(newEndDate)
-		@endDate=newEndDate if newEndDate.class == Time
+		@endDate=newEndDate 
 	end
 
 	def to_JSON
 		jsonObject={:id => @id, :name => @name}
 	end
 
+	def == report
+		if report.is_a? Report
+			@name==report.name
+		end
+	end
+
+	alias eql? ==
+
 end
 
 class OrderReport < Report
 	
-	def generateOrderReport
+	def generateReport
 		filteredOrders=self.getFilteredOrders
 		report={}
 		report[:id]=@id
@@ -53,20 +63,22 @@ class OrderReport < Report
 	def generateTodayOrderReport
 		@startDate=Time.new(Time.now.year, Time.now.month, Time.now.day)
 		@endDate=@startDate+86400
-		generateOrderReport
+		generateReport
 	end
 
 	def generateTomorrowOrderReport
 		@startDate=Time.new(Time.now.year, Time.now.month, Time.now.day) + 86400
 		@endDate=@startDate+86400
-		generateOrderReport
+		generateReport
 	end
+
+
 end
 
 class RevenueReport < Report
 
 	
-	def generateRevenueReport 
+	def generateReport 
 		jsonObject={}
 		jsonObject[:name]=name
 		@startDate==false ? jsonObject[:start_date]="NA" : jsonObject[:start_date]=@startDate 
