@@ -38,19 +38,25 @@ class DelectableServer
 	def createOrder(customer, deliveryAddress, deliveryDate, specialInstructions, order_details)
 		newOrder = Order.new(customer, [], deliveryAddress, deliveryDate, specialInstructions)
 		menuItems=self.getMenuItems(order_details)
+		originalLength=menuItems.length
 		menuItems.each do |menuItem|
 			newOrder.addItem!(menuItem[0], menuItem[1])
 		end
-		@admin.addOrder!(newOrder)
-		newOrder
+		if newOrder.itemsInOrder.length == originalLength
+			@admin.addOrder!(newOrder)
+			newOrder
+		else
+			return false
+		end
 	end	
 
 	def createCustomer(name, email, phone)
 		if @admin.doesCustomerExist?(email)
-			false
+			matchingCustomers=admin.searchCustomers(email)
+			matchingCustomers[0]
 		else
 			newCustomer = Customer.new(name, phone, email)
-			@admin.addNewCustomer!(newCustomer)
+			@admin.addNewCustomer!(newCustomer) 
 			newCustomer
 		end
 	end
@@ -59,7 +65,8 @@ class DelectableServer
 		itemsThatExist=[]
 		order_details.each do |order_detail|
 			if @admin.menu.doesMenuItemExist?(order_detail["id"])
-				itemsThatExist << [@admin.menu.getMenuItem(order_detail["id"]), order_detail["count"]]
+				id=order_detail["id"].to_i
+				itemsThatExist << [@admin.menu.getMenuItem(id), order_detail["count"].to_i]
 			end
 		end
 		itemsThatExist
@@ -117,44 +124,55 @@ class DelectableServer
 	end	
 end
 
-bbqBeefBrisket=Food.new "BBQ Beef Brisket", [:beef,:meat]
-coke=Food.new "Coke", [:drink]
-pepsi=Food.new "Pepsi", [:drink]
-bbqChicken=Food.new "BBQ Chicken", [:chicken,:meat]
-lemonChicken=Food.new "Lemon Chicken", [:chicken,:meat]
-salmon=Food.new "Smoked Salmon", [:fish,:pescatarian]
-lasagna=Food.new "Lasagna", [:pasta]
-@menu=Menu.new [
-	(menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 123),
-	(menuItem2=MenuItem.new coke, 2, 6, 124),
-	(menuItem3=MenuItem.new pepsi, 2, 6, 125),
-	(menuItem4=MenuItem.new bbqChicken, 5, 10, 126),
-	(menuItem5=MenuItem.new lemonChicken, 6, 10, 127), 
-	(menuItem6=MenuItem.new salmon, 10, 10, 128),
-	(menuItem7=MenuItem.new lasagna, 5, 10,129)]
-menuOrders=[[menuItem1, 15], [menuItem2, 10]]
-deliveryDate=Time.new(2016, 06, 07, 3,30)
-todayDate=Time.now
-pastDate=Time.now - 5*86400
-weekendDate=Time.new(2016,03,19, 3,30)
-oldDate=Time.now - 30*8*86400
-futureDate=Time.now + 5*86400
-tomorrowDate=Time.now + 83000
-@customer=Customer.new  "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
-@johnson=Customer.new  "Johnson", "customerPhoneNumber", "Customer@email.com"
-@jones=Customer.new  "jones", "customerPhoneNumber", "jones@email.com", 123  
-@customers=[@customer, @johnson, @jones]
-@order=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
-@copyOrder=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
-@todayOrder=Order.new  @johnson, menuOrders, "deliveryAddress", todayDate, "specialInstructions"
-@orderWithId =Order.new  @johnson, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions", 12345
-@pastOrder =Order.new  @customer, menuOrders, "deliveryAddress", pastDate, "specialInstructions", 12346
-@weekendOrder = Order.new  @customer, menuOrders, "deliveryAddress", weekendDate, "specialInstructions", 12357
-@oldOrder=Order.new  @jones, menuOrders, "deliveryAddress", oldDate, "specialInstructions"
-@futureOrder=Order.new  @jones, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
-@tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
-@orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder, @weekendOrder]
-delect = DelectableServer.new(@orders, @menu, @customers, [OrderReport.new(@orders, "TestReport", false, false, 1234)])
+
+#TEST DATA
+# bbqBeefBrisket=Food.new "BBQ Beef Brisket", [:beef,:meat]
+# coke=Food.new "Coke", [:drink]
+# pepsi=Food.new "Pepsi", [:drink]
+# bbqChicken=Food.new "BBQ Chicken", [:chicken,:meat]
+# lemonChicken=Food.new "Lemon Chicken", [:chicken,:meat]
+# salmon=Food.new "Smoked Salmon", [:fish,:pescatarian]
+# lasagna=Food.new "Lasagna", [:pasta]
+# @menu=Menu.new [
+# 	(menuItem1=MenuItem.new bbqBeefBrisket, 10, 10, 123),
+# 	(menuItem2=MenuItem.new coke, 2, 6, 124),
+# 	(menuItem3=MenuItem.new pepsi, 2, 6, 125),
+# 	(menuItem4=MenuItem.new bbqChicken, 5, 10, 126),
+# 	(menuItem5=MenuItem.new lemonChicken, 6, 10, 127), 
+# 	(menuItem6=MenuItem.new salmon, 10, 10, 128),
+# 	(menuItem7=MenuItem.new lasagna, 5, 10,129)]
+# menuOrders=[[menuItem1, 15], [menuItem2, 10]]
+# deliveryDate=Time.new(2016, 06, 07, 3,30)
+# todayDate=Time.now
+# pastDate=Time.now - 5*86400
+# weekendDate=Time.new(2016,03,19, 3,30)
+# oldDate=Time.now - 30*8*86400
+# futureDate=Time.now + 5*86400
+# tomorrowDate=Time.now + 83000
+# @customer=Customer.new  "CustomerLastName", "customerPhoneNumber", "Customer@email.com" 
+# @johnson=Customer.new  "Johnson", "customerPhoneNumber", "Customer@email.com"
+# @jones=Customer.new  "jones", "customerPhoneNumber", "jones@email.com", 123  
+# @customers=[@customer, @johnson, @jones]
+# @order=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
+# @copyOrder=Order.new  @customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions"
+# @todayOrder=Order.new  @johnson, menuOrders, "deliveryAddress", todayDate, "specialInstructions"
+# @orderWithId =Order.new  @johnson, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions", 12345
+# @pastOrder =Order.new  @customer, menuOrders, "deliveryAddress", pastDate, "specialInstructions", 12346
+# @weekendOrder = Order.new  @customer, menuOrders, "deliveryAddress", weekendDate, "specialInstructions", 12357
+# @oldOrder=Order.new  @jones, menuOrders, "deliveryAddress", oldDate, "specialInstructions"
+# @futureOrder=Order.new  @jones, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
+# @tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
+# @orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder, @weekendOrder]
+
+#IF YOU USE THE TEST DATA BE SURE TO USE @orders, @menu, AND @customers
+# delect = DelectableServer.new(@orders, @menu, @customers, [OrderReport.new(@orders, "TestReport", false, false, 1234)])
+
+#THE REAL RUNNING SYSTEM
+@menu=Menu.new
+@orders=[]
+@customers=[]
+@reports=[]
+delect=DelectableServer.new(@orders, @menu, @customers, @reports)
 set :port, 8080
 set :environment, :production
 
@@ -175,7 +193,7 @@ end
 #ORDER
 get '/delectable/order' do
 	if params['date']
-		date=DateTime.parse(params['date'])
+		date=Time.parse(params['date'])
 		delect.admin.getOrdersDueThisDate(date).to_json
 	else
 		delect.admin.ordersToJSON.to_json
@@ -196,17 +214,21 @@ put '/delectable/order' do
 		customerPhone=@params["personal_info"]["phone"]
 		newCustomer=delect.createCustomer(customerName, customerEmail, customerPhone)
 		deliveryAddress=@params["delivery_address"]		
-		deliveryDate=DateTime.parse(@params["delivery_date"])
+		deliveryDate=Time.parse(@params["delivery_date"])
 		specialInstructions=@params["note"]
 		orderDetails=@params["order_detail"]
 		deliveryAddress.to_json
 		newOrder=delect.createOrder(newCustomer, deliveryAddress, deliveryDate,specialInstructions,orderDetails)
-		jsonObject={}
-		jsonObject[:id]=newOrder.id
-		jsonObject[:cancel_url]="/order/cancel/"+newOrder.id.to_s
-		jsonObject
+		if newOrder
+			jsonObject={}
+			jsonObject[:id]=newOrder.id
+			jsonObject[:cancel_url]="/order/cancel/"+newOrder.id.to_s
+			jsonObject
+		else
+			status 400
+		end
 	else 
-		':('
+		status 400
 	end
 end
 

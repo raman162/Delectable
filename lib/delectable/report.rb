@@ -18,7 +18,8 @@ class Report
 	def getFilteredOrders
 		filteredOrders=[]
 		@orders.each do |order|
-			filteredOrders << order if order.dueWithinTheRange?(@startDate,@endDate)
+			order.calculateCost
+			filteredOrders << order if order.dueWithinTheRange?(@startDate,@endDate) && order.order_status != 0
 		end
 		filteredOrders
 	end
@@ -62,13 +63,13 @@ class OrderReport < Report
 
 	def generateTodayOrderReport
 		@startDate=Time.new(Time.now.year, Time.now.month, Time.now.day)
-		@endDate=@startDate+86400
+		@endDate=@startDate+86399
 		generateReport
 	end
 
 	def generateTomorrowOrderReport
 		@startDate=Time.new(Time.now.year, Time.now.month, Time.now.day) + 86400
-		@endDate=@startDate+86400
+		@endDate=@startDate+86399
 		generateReport
 	end
 
@@ -81,9 +82,10 @@ class RevenueReport < Report
 	def generateReport 
 		jsonObject={}
 		jsonObject[:name]=name
+		filteredOrders=self.getFilteredOrders
 		@startDate==false ? jsonObject[:start_date]="NA" : jsonObject[:start_date]=@startDate 
 		@endDate==false ? jsonObject[:end_date]="NA" : jsonObject[:end_date]=@endDate 
-		jsonObject[:orders_placed]=@orders.length
+		jsonObject[:orders_placed]=filteredOrders.length
 		jsonObject[:orders_cancelled]=self.countOrdersCancelled
 		jsonObject[:orders_open]=self.countOrdersOpen
 		jsonObject[:food_revenue]=self.calculateFoodRevenue

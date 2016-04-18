@@ -16,7 +16,14 @@ class Order
 		@deliveryDate = deliveryDate
 		@specialInstructions = specialInstructions
 		@order_status = ORDER_PENDING
-		@orderSurcharge=0
+		
+		##Applying Surcharge
+		if (@deliveryDate.saturday? || @deliveryDate.sunday?) 
+			@orderSurcharge=@@surcharge
+		else
+			@orderSurcharge=0
+		end
+
 		@orderDate=Time.now
 		if id==0
 			@id = self.object_id
@@ -119,13 +126,8 @@ class Order
 
 	def calculateCost
 		cost=0
-		if (@deliveryDate.saturday? || @deliveryDate.sunday?) 
-			@orderSurcharge+=@@weekendSurcharge
-		end
-
 		@itemsInOrder.each {|orderItem| cost+=orderItem[0].price_per_person*orderItem[1]}
-		@finalCost=cost+@@surcharge
-		@finalCost
+		@finalCost=cost
 	end
 	
 

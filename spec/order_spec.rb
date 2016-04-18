@@ -31,12 +31,14 @@ describe Order do
 		@todayOrder=Order.new  customer, menuOrders, "deliveryAddress", todayDate, "specialInstructions"
 		@orderWithId =Order.new  customer, menuOrders, "deliveryAddress", deliveryDate, "specialInstructions", 12345
 		@pastOrder =Order.new  customer, menuOrders, "deliveryAddress", pastDate, "specialInstructions", 12345
-		@weekendOrder = Order.new  customer, menuOrders, "deliveryAddress", weekendDate, "specialInstructions"
 		@oldOrder=Order.new  customer, menuOrders, "deliveryAddress", oldDate, "specialInstructions"
 		@futureOrder=Order.new  customer, menuOrders, "deliveryAddress", futureDate, "specialInstructions"
 		@dueInEightdayOrder=Order.new  customer, menuOrders, "deliveryAddress", eightDayDate, "specialInstructions"
 		@tomorrowOrder=Order.new  customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
 		@emptyOrder=Order.new customer, [], "delivery", tomorrowDate, "specialInstructions"
+		Order.changeSurcharge! 5
+		@weekendOrder = Order.new  customer, menuOrders, "deliveryAddress", weekendDate, "specialInstructions"
+		Order.changeSurcharge! 0
 	end
 
 
@@ -124,6 +126,10 @@ describe Order do
 
 		it "returns false since order is not due today" do
 			@order.dueToday?.should eql false
+		end
+
+		it "retruns true if order is due today" do
+			@todayOrder.dueToday?.should eql true
 		end
 	end
 
@@ -244,7 +250,6 @@ describe Order do
 		end
 
 		it "adds surcharge for order on weekend and doesn't on other order" do
-			Order.changeSurcharge! 0
 			(@weekendOrder.calculateCost+@weekendOrder.orderSurcharge).should eql 175
 			@order.calculateCost.should eql 170
 		end
@@ -258,10 +263,6 @@ describe Order do
 			Order.surcharge.should eql 5
 		end
 
-		it "includes new cost with the surcharge" do
-			Order.changeSurcharge! 10
-			@order.calculateCost.should eql 180
-		end
 	end
 
 	describe "#changeQuantityOfItem!" do
