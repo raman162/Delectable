@@ -344,6 +344,16 @@ describe Order do
 			@order.getJsonOrderStatus.should eql "open"
 		end
 
+		it "retusn status cancelled for cancelled order" do
+			@tomorrowOrder.cancelOrder!
+			@tomorrowOrder.getJsonOrderStatus.should eql "cancelled"
+		end
+
+		it "returns delivered status for orders compelted" do
+			@todayOrder.order_status=2
+			@todayOrder.getJsonOrderStatus.should eql "delivered"
+		end
+
 	end
 	describe "#to_ShortJson" do
 
