@@ -181,7 +181,7 @@ class Order
 		jsonObject[:deliveryDate]=@deliveryDate
 		jsonObject[:amount]=@finalCost
 		jsonObject[:surcharge]=@orderSurcharge
-		jsonObject[:status]=@order_status
+		jsonObject[:status]=self.getJsonOrderStatus
 		jsonObject[:ordered_by]=@customer.email
 		jsonObject[:order_detail]=self.getJsonOrderDetail
 		jsonObject
@@ -196,6 +196,16 @@ class Order
 		jsonOrderDetail
 	end
 
+	def getJsonOrderStatus
+		if @order_status==0
+			"cancelled"
+		elsif @order_status==1
+			"open"
+		else
+			"delivered"
+		end
+
+	end
 
 	def to_ShortJson
 		shortJson=self.to_JSON

@@ -313,7 +313,7 @@ describe Order do
 			jsonObject[:deliveryDate]=Time.new(2016, 06, 07, 3,30)
 			jsonObject[:amount]=@orderWithId.finalCost
 			jsonObject[:surcharge]=@orderWithId.orderSurcharge
-			jsonObject[:status]=@orderWithId.order_status
+			jsonObject[:status]=@orderWithId.getJsonOrderStatus
 			jsonObject[:ordered_by]=@orderWithId.customer.email
 			jsonObject[:order_detail]=@orderWithId.getJsonOrderDetail
 			@orderWithId.to_JSON.should eql jsonObject			
@@ -338,7 +338,13 @@ describe Order do
 		end
 	end
 
+	describe "#getJsonOrderStatus" do
 
+		it "gets the correct oder status for an order" do
+			@order.getJsonOrderStatus.should eql "open"
+		end
+
+	end
 	describe "#to_ShortJson" do
 
 		it "gets a shorter version of the Json object" do
@@ -349,7 +355,7 @@ describe Order do
 			jsonObject[:deliveryDate]=Time.new(2016, 06, 07, 3,30)
 			jsonObject[:amount]=@orderWithId.finalCost
 			jsonObject[:surcharge]=@orderWithId.orderSurcharge
-			jsonObject[:status]=@orderWithId.order_status
+			jsonObject[:status]=@orderWithId.getJsonOrderStatus
 			@orderWithId.to_ShortJson.should eql jsonObject
 		end 
 	end

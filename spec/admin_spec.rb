@@ -285,7 +285,7 @@ describe Admin do
 			jsonObject[:deliveryDate]=@pastOrder.deliveryDate
 			jsonObject[:amount]=@pastOrder.finalCost
 			jsonObject[:surcharge]=@pastOrder.orderSurcharge
-			jsonObject[:status]=@pastOrder.order_status
+			jsonObject[:status]=@pastOrder.getJsonOrderStatus
 			jsonObject[:ordered_by]=@pastOrder.customer.email
 			jsonObject[:order_detail]=@pastOrder.getJsonOrderDetail
 			@oneOrderAdmin.ordersToJSON.should eql [jsonObject]

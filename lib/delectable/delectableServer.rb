@@ -234,9 +234,12 @@ end
 
 post '/delectable/order/cancel/:id' do
 	delect.admin.cancelOrder!(params[:id].to_i)
-	jsonObject={}
-	jsonObject[:id]=params[:id].to_i
-	jsonObject.to_json
+	order=delect.admin.getOrder(params[:id].to_i)
+	if order.order_status != 0
+		status 400
+	else
+		status 200
+	end
 end
 
 
