@@ -1,3 +1,6 @@
+##IGNORE FOR PROJECT
+
+
 # Delectable
 
 TODO: Write a gem description
