@@ -10,25 +10,15 @@ require_relative 'report.rb'
 require 'sinatra'
 require 'json'
 require 'date'
-# get '/' do
-# 	"Hello, World"	
-# end
-
-# get '/about' do
-# 	"I love bad $% Problem"
-# end
-
-
-# get '/hello/:name' do
-# 	"Hello there, #{params[:name]}"
-# end
 
 class DelectableServer
-	attr_accessor :admin
+	attr_accessor :admin, :reports, :customers, :orders
 
-	def initialize customers, orders, menu, reports
+	def initialize orders, menu, customers, reports
 		@reports=reports
-		@admin=Admin.new customers, orders, menu
+		@customers=customers
+		@orders=orders
+		@admin=Admin.new menu
 	end
 
 	def getMenu	
@@ -50,15 +40,101 @@ class DelectableServer
 		end
 	end	
 
+	def searchCustomers(query)
+		matchingCustomers=[]
+		@customers.each do |thisCustomer|
+			matchingCustomers << thisCustomer if thisCustomer.isMatch?(query)
+		end
+		matchingCustomers
+	end
+
+	def doesCustomerExist?(email)
+		matchingCustomers=self.searchCustomers(email)
+		if matchingCustomers.length > 0
+			true
+		else
+			false
+		end
+	end
+
+	def getCustomer(id)
+		customerMatch=nil
+		@customers.each do |customer|
+			customerMatch=customer if customer.id == id
+		end
+		customerMatch
+	end
+
+	def findCustomerOrders(customer)
+		customerOrders=[]
+		customerEmail=customer.email
+		@orders.each do |order|
+			customerOrders << order if order.isMatch?(customerEmail)
+		end
+		customerOrders
+	end
+
+	def addNewCustomer!(newCustomer)
+		@customers << newCustomer unless doesCustomerExist?(newCustomer.email)
+	end
+
 	def createCustomer(name, email, phone)
-		if @admin.doesCustomerExist?(email)
-			matchingCustomers=admin.searchCustomers(email)
+		if self.doesCustomerExist?(email)
+			matchingCustomers=self.searchCustomers(email)
 			matchingCustomers[0]
 		else
 			newCustomer = Customer.new(name, phone, email)
-			@admin.addNewCustomer!(newCustomer) 
+			addNewCustomer!(newCustomer) 
 			newCustomer
 		end
+	end
+
+	def getOrder(id)
+		orderMatch=false
+		@orders.each do |order|
+			orderMatch=order if order.id==id
+		end
+		orderMatch
+	end
+
+	def cancelOrder!(id)
+		@orders.each do |order|
+			order.cancelOrder! if order.id==id
+		end
+	end
+
+	def changeOrderStatusToDelivered!(id)
+		@orders.each do |order|
+			order.completeOrder! if order.id==id
+		end
+	end
+
+	def getOrdersDueToday
+		ordersDueToday=[]
+		@orders.each do |order|
+			ordersDueToday << order if order.dueToday?
+		end
+		ordersDueToday
+	end
+
+	def getOrdersDueTomorrow
+		ordersDueTomorrow=[] 
+		@orders.each do |order|
+			ordersDueTomorrow << order if order.dueTomorrow?
+		end
+		ordersDueTomorrow
+	end
+
+	def getOrdersDueThisDate(date)
+		ordersDue=[]
+		@orders.each do |order|
+			ordersDue << order.to_JSON if order.dueThisDate?(date)
+		end
+		ordersDue
+	end
+
+	def addOrder!(order)
+		@orders << order
 	end
 
 	def getMenuItems(order_details)
@@ -122,6 +198,22 @@ class DelectableServer
 		end
 		reportMatch
 	end	
+
+	def ordersToJSON
+		orderArray=[]
+		@orders.each do |order|
+			orderArray << order.to_JSON
+		end
+		orderArray
+	end
+
+	def customersToJSON
+		customerArray=[]
+		@customers.each do |customer|
+			customerArray << customer.to_JSON
+		end
+		customerArray
+	end
 end
 
 
