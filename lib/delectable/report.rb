@@ -1,5 +1,6 @@
 class Report
 
+
 	attr_accessor :orders, :name, :startDate, :endDate, :id, :filteredOrders
 	attr_reader :creationDate
 

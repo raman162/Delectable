@@ -41,7 +41,7 @@ describe Admin do
 		@tomorrowOrder=Order.new  @customer, menuOrders, "deliveryAddress", tomorrowDate, "specialInstructions"
 		@bbqOrder=Order.new @customer, [[menuItem1, 8],[menuItem4, 10]], "deliveryAddress", deliveryDate, "specialInstructions"
 		@orders=[@order, @todayOrder, @pastOrder, @oldOrder, @futureOrder, @tomorrowOrder]
-		@admin=Admin.new @menu
+		@admin=Admin.new
 	end
 
 
@@ -50,6 +50,39 @@ describe Admin do
 
 		it "returns a new Admin object" do
 			@admin.should be_an_instance_of Admin
+		end
+	end
+
+	describe "#addItemToMenu!" do
+
+		it "adds a new menu Item to the menu" do
+			mashPotato=Food.new("Mash Potato", [:vegiterian])
+			menuItem8=MenuItem.new(mashPotato, 10, 10, 500)
+			@admin.addItemToMenu!(@menu, menuItem8)
+			@menu.doesMenuItemExist?(500).should eql true
+		end
+
+	end
+
+	describe "updateMenuItemPrice!" do
+
+		it "updates the price of a menu item" do
+			@admin.updateMenuItemPrice!(@menu,123,15)
+			@menu.getMenuItem(123).price_per_person.should eql 15
+		end
+
+		it "does not add a new menu item when given an invalid id" do
+			@admin.updateMenuItemPrice!(@menu, 299, 15)
+			@menu.doesMenuItemExist?(299).should eql false
+		end
+	end
+
+
+	describe "updateOrderToDelivered!"  do
+		
+		it "updated an order status to delivered" do
+			@admin.updateOrderToDelivered!(@todayOrder)
+			@todayOrder.order_status.should eql 2
 		end
 	end
 
@@ -99,6 +132,8 @@ describe Admin do
 			Order.surchargeDates.should eql []
 		end
 	end
+
+
 
 
 end

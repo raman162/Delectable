@@ -98,10 +98,10 @@ class Order
 			match=@deliveryDate.between?(startDate,endDate)
 		end
 		if startDate==false && endDate!=false
-			match=@deliveryDate < endDate
+			match=@deliveryDate <= endDate
 		end
 		if endDate==false && startDate!=false
-			match=@deliveryDate > startDate
+			match=@deliveryDate >= startDate
 		end
 		match
 	end

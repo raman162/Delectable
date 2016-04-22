@@ -169,6 +169,10 @@ describe Order do
 		it "returns true for when given start date in past and false end date" do
 			@todayOrder.dueWithinTheRange?(Time.now-86400, false).should eql true
 		end
+
+		it "returns true when given both false dates" do
+			@todayOrder.dueWithinTheRange?(false,false)
+		end
 	end
 
 	describe "#dueInTheFuture?" do

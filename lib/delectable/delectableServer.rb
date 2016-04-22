@@ -12,17 +12,14 @@ require 'json'
 require 'date'
 
 class DelectableServer
-	attr_accessor :admin, :reports, :customers, :orders
+	attr_accessor :admin, :reports, :customers, :orders, :menu
 
 	def initialize orders, menu, customers, reports
 		@reports=reports
 		@customers=customers
 		@orders=orders
-		@admin=Admin.new menu
-	end
-
-	def getMenu	
-		@admin.menu
+		@menu=menu
+		@admin=Admin.new 
 	end
 
 	def createOrder(customer, deliveryAddress, deliveryDate, specialInstructions, order_details)
@@ -33,7 +30,7 @@ class DelectableServer
 			newOrder.addItem!(menuItem[0], menuItem[1])
 		end
 		if newOrder.itemsInOrder.length == originalLength
-			@admin.addOrder!(newOrder)
+			self.addOrder!(newOrder)
 			newOrder
 		else
 			return false
@@ -103,12 +100,6 @@ class DelectableServer
 		end
 	end
 
-	def changeOrderStatusToDelivered!(id)
-		@orders.each do |order|
-			order.completeOrder! if order.id==id
-		end
-	end
-
 	def getOrdersDueToday
 		ordersDueToday=[]
 		@orders.each do |order|
@@ -140,9 +131,9 @@ class DelectableServer
 	def getMenuItems(order_details)
 		itemsThatExist=[]
 		order_details.each do |order_detail|
-			if @admin.menu.doesMenuItemExist?(order_detail["id"])
+			if self.menu.doesMenuItemExist?(order_detail["id"])
 				id=order_detail["id"].to_i
-				itemsThatExist << [@admin.menu.getMenuItem(id), order_detail["count"].to_i]
+				itemsThatExist << [self.menu.getMenuItem(id), order_detail["count"].to_i]
 			end
 		end
 		itemsThatExist
@@ -157,8 +148,8 @@ class DelectableServer
 	end
 
 	def getCustomerOrdersJson(id)
-		customer=@admin.getCustomer(id)
-		customerOrders=@admin.findCustomerOrders(customer)
+		customer=self.getCustomer(id)
+		customerOrders=self.findCustomerOrders(customer)
 		jsonOrders=[]
 		customerOrders.each do |order|
 			jsonOrders << order.to_ShortJson
@@ -167,16 +158,13 @@ class DelectableServer
 	end
 
 	def generateReports!
-		todayReport=OrderReport.new(@admin.orders, "Orders to deliver today")
+		todayReport=OrderReport.new(self.orders, "Orders to deliver today")
 		jsonReport=todayReport.generateTodayOrderReport
-		tomorrowReport=OrderReport.new(@admin.orders, "Orders to deliver tomrrow")
+		tomorrowReport=OrderReport.new(self.orders, "Orders to deliver tomrrow")
 		jsonReport=tomorrowReport.generateTomorrowOrderReport
-		orderReport=OrderReport.new(@admin.orders, "Orders delivery report")
-		revenueReport=RevenueReport.new(@admin.orders, "Revenue report")
-		@reports.collect!{|report| (report==todayReport) ? todayReport : report}
-		@reports.collect!{|report| (report==tomorrowReport) ? tomorrowReport : report}
-		@reports.collect!{|report| (report==orderReport) ? orderReport : report}
-		@reports.collect!{|report| (report==revenueReport) ? revenueReport : report}
+		orderReport=OrderReport.new(self.orders, "Orders delivery report")
+		# jsonReport=orderReport.generateReport
+		revenueReport=RevenueReport.new(self.orders, "Revenue report")
 		@reports << todayReport unless @reports.include?(todayReport)
 		@reports << tomorrowReport unless @reports.include?(tomorrowReport)
 		@reports << orderReport unless @reports.include?(orderReport)
@@ -217,7 +205,7 @@ class DelectableServer
 end
 
 
-#TEST DATA
+# #TEST DATA
 # bbqBeefBrisket=Food.new "BBQ Beef Brisket", [:beef,:meat]
 # coke=Food.new "Coke", [:drink]
 # pepsi=Food.new "Pepsi", [:drink]
@@ -272,12 +260,12 @@ set :environment, :production
 
 #MENU
 get '/delectable/menu' do
-	delect.admin.menu.to_JSON.to_json
+	delect.menu.to_JSON.to_json
 end 
 
 get '/delectable/menu/:id' do
 	idValueString=params[:id].to_s
-	delect.admin.menu.menuItems[idValueString.to_i].to_JSON.to_json
+	delect.menu.getMenuItem(idValueString.to_i).to_JSON.to_json
 end
 
 
@@ -286,16 +274,16 @@ end
 get '/delectable/order' do
 	if params['date']
 		date=Time.parse(params['date'])
-		delect.admin.getOrdersDueThisDate(date).to_json
+		delect.getOrdersDueThisDate(date).to_json
 	else
-		delect.admin.ordersToJSON.to_json
+		delect.ordersToJSON.to_json
 	end
 end
 
 
 get '/delectable/order/:id' do
 	id=params[:id].to_i
-	delect.admin.getOrder(id).to_JSON.to_json
+	delect.getOrder(id).to_JSON.to_json
 end
 
 put '/delectable/order' do
@@ -325,8 +313,8 @@ put '/delectable/order' do
 end
 
 post '/delectable/order/cancel/:id' do
-	delect.admin.cancelOrder!(params[:id].to_i)
-	order=delect.admin.getOrder(params[:id].to_i)
+	delect.cancelOrder!(params[:id].to_i)
+	order=delect.getOrder(params[:id].to_i)
 	if order.order_status != 0
 		status 400
 	else
@@ -341,7 +329,7 @@ end
 get '/delectable/customer' do
 	if params['key']
 		query=params['key']
-		matchingCustomers=delect.admin.searchCustomers(query)
+		matchingCustomers=delect.searchCustomers(query)
 		jsonReturn=[]
 		if matchingCustomers
 			matchingCustomers.each do |customer|
@@ -352,13 +340,13 @@ get '/delectable/customer' do
 			'Something is wrong'
 		end		
 	else
-		delect.admin.customersToJSON.to_json
+		delect.customersToJSON.to_json
 	end
 end
 
 get '/delectable/customer/:id' do
 	id=params[:id].to_i
-	jsonObject=delect.admin.getCustomer(id).to_JSON
+	jsonObject=delect.getCustomer(id).to_JSON
 	jsonObject[:orders]=delect.getCustomerOrdersJson(id)
 	jsonObject
 end
@@ -376,13 +364,19 @@ get "/delectable/report/:id" do
 	report=delect.getReport(id)
 	if params['start_date']
 		startDate=Time.parse(params['start_date'])
+		oldStartDate=report.startDate
 		report.changeStartDate!(startDate)
 	end
 	if params['end_date']
 		endDate=Time.parse(params['end_date'])
+		oldEndDate=report.endDate
 		report.changeEndDate!(endDate)
 	end
+	report.orders=delect.orders
 	jsonObject=report.generateReport
+	if(oldStartDate) then report.changeStartDate!(oldStartDate) end
+	if(oldEndDate) then report.changeEndDate!(oldEndDate) end
+	jsonObject
 	
 end	
 
@@ -397,7 +391,7 @@ put '/delectable/admin/menu' do
 		pricePerPerson=@params["price_per_person"]
 		minOrder=@params["minimum_order"]
 		newMenuItem=MenuItem.new(newFood, pricePerPerson, minOrder)
-		delect.admin.menu.addItem!(newMenuItem)
+		delect.admin.addItemToMenu!(delect.menu, newMenuItem)
 	end
 end
 

@@ -1,10 +1,9 @@
 class Admin
 
-	attr_accessor :menu
+	attr_accessor 
 
 
-	def initialize  menu
-		@menu=menu
+	def initialize 
 	end
 
 	def changeSurcharge!(newSurcharge)
@@ -23,5 +22,17 @@ class Admin
 		Order.removeAllSurchargeDates!
 	end
 
+	def addItemToMenu!(menu, menuItem)
+		menu.addItem!(menuItem)
+	end
 
+	def updateMenuItemPrice!(menu, id, price)
+		if menu.doesMenuItemExist?(id)
+			menu.menuItems[id].price_per_person=price
+		end
+	end
+
+	def updateOrderToDelivered!(order)
+		order.order_status=2
+	end
 end

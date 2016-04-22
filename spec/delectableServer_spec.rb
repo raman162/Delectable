@@ -123,7 +123,17 @@ describe DelectableServer do
 		end
 	end
 
-		describe "#getOrdersDueToday" do
+	
+	describe "#createOrder" do
+
+		it "creates an order once valid information is received" do
+			
+
+		end
+	end
+
+
+	describe "#getOrdersDueToday" do
 
 		it "returns an array of orders that are due today" do
 			@delect.getOrdersDueToday.should eql [@todayOrder]

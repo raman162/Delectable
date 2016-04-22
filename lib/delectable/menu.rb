@@ -38,7 +38,6 @@ class Menu
 
 	def showCategories(categories)
 		newMenu=Menu.new
-		puts newMenu
 		categories.each do |category|
 			getCategoryMenuItems(category,newMenu)
 		end
