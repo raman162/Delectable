@@ -348,7 +348,7 @@ get '/delectable/customer/:id' do
 	id=params[:id].to_i
 	jsonObject=delect.getCustomer(id).to_JSON
 	jsonObject[:orders]=delect.getCustomerOrdersJson(id)
-	jsonObject
+	jsonObject.to_json
 end
 
 #REPORT
@@ -376,7 +376,7 @@ get "/delectable/report/:id" do
 	jsonObject=report.generateReport
 	if(oldStartDate) then report.changeStartDate!(oldStartDate) end
 	if(oldEndDate) then report.changeEndDate!(oldEndDate) end
-	jsonObject
+	jsonObject.to_json
 	
 end	
 
@@ -397,7 +397,7 @@ end
 
 post '/delectable/admin/menu/:id' do
 	@params=JSON.parse(request.env["rack.input"].read)
-	delect.admin.menu.menuItems[@params["id"]].price_per_person=@params["price_per_person"]
+	delect.menu.menuItems[@params["id"]].price_per_person=@params["price_per_person"]
 end
 
 get '/delectable/admin/surcharge' do
